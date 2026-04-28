@@ -1,0 +1,98 @@
+@startuml caso-de-uso
+title High-Ticket Showcase — Diagrama de Caso de Uso
+
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+
+actor "Cliente" as cliente
+actor "Lojista" as lojista
+actor "Admin"   as admin
+actor "Stripe"  as stripe <<externo>>
+
+rectangle "Autenticação (auth-service)" {
+  usecase "Registrar-se"    as UC_REG
+  usecase "Fazer login"     as UC_LOGIN
+  usecase "Fazer logout"    as UC_LOGOUT
+  usecase "Renovar token"   as UC_REFRESH
+}
+
+rectangle "Catálogo (store-service)" {
+  usecase "Explorar lojas"         as UC_LOJAS
+  usecase "Explorar produtos"      as UC_PRODUTOS
+  usecase "Visualizar produto"     as UC_VER_PROD
+}
+
+rectangle "Agendamento (store-service)" {
+  usecase "Agendar visita"         as UC_AGENDAR
+  usecase "Cancelar visita"        as UC_CANCEL_CLI
+  usecase "Listar minhas visitas"  as UC_LIST_VISITAS
+}
+
+rectangle "Gestão de Loja (store-service)" {
+  usecase "Criar loja"              as UC_CRIAR_LOJA
+  usecase "Editar loja"             as UC_EDIT_LOJA
+  usecase "Criar produto"           as UC_CRIAR_PROD
+  usecase "Editar produto"          as UC_EDIT_PROD
+  usecase "Fazer upload de mídia"   as UC_UPLOAD
+  usecase "Listar visitas da loja"  as UC_LIST_VIS_LOJ
+  usecase "Confirmar visita"        as UC_CONFIRMAR
+  usecase "Cancelar visita (loja)"  as UC_CANCEL_LOJ
+}
+
+rectangle "Pagamentos (payment-service)" {
+  usecase "Visualizar planos"       as UC_VER_PLANOS
+  usecase "Assinar plano"           as UC_ASSINAR
+  usecase "Ver status da assinatura" as UC_STATUS_PLAN
+  usecase "Processar webhook"       as UC_WEBHOOK
+}
+
+rectangle "Administração (user-service)" {
+  usecase "Gerenciar usuários"  as UC_ADM_USERS
+  usecase "Gerenciar planos"    as UC_ADM_PLANS
+}
+
+' --- Cliente
+cliente --> UC_REG
+cliente --> UC_LOGIN
+cliente --> UC_LOGOUT
+cliente --> UC_REFRESH
+cliente --> UC_LOJAS
+cliente --> UC_PRODUTOS
+cliente --> UC_VER_PROD
+cliente --> UC_AGENDAR
+cliente --> UC_CANCEL_CLI
+cliente --> UC_LIST_VISITAS
+
+' --- Lojista
+lojista --> UC_REG
+lojista --> UC_LOGIN
+lojista --> UC_LOGOUT
+lojista --> UC_REFRESH
+lojista --> UC_CRIAR_LOJA
+lojista --> UC_EDIT_LOJA
+lojista --> UC_CRIAR_PROD
+lojista --> UC_EDIT_PROD
+lojista --> UC_LIST_VIS_LOJ
+lojista --> UC_CONFIRMAR
+lojista --> UC_CANCEL_LOJ
+lojista --> UC_VER_PLANOS
+lojista --> UC_ASSINAR
+lojista --> UC_STATUS_PLAN
+
+' --- Admin
+admin --> UC_ADM_USERS
+admin --> UC_ADM_PLANS
+
+' --- Relacionamentos
+UC_CRIAR_PROD ..> UC_UPLOAD     : <<include>>
+UC_EDIT_PROD  ..> UC_UPLOAD     : <<extend>>
+UC_LIST_VIS_LOJ ..> UC_CONFIRMAR  : <<extend>>
+UC_LIST_VIS_LOJ ..> UC_CANCEL_LOJ : <<extend>>
+UC_ASSINAR ..> UC_VER_PLANOS    : <<include>>
+
+UC_CRIAR_LOJA ..> UC_STATUS_PLAN : <<include>>\nrequer assinatura ativa
+
+stripe --> UC_WEBHOOK
+
+@enduml

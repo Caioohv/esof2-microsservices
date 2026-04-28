@@ -1,0 +1,203 @@
+@startuml classes
+title High-Ticket Showcase — Diagrama de Classes
+
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+' ─────────────────────────────────────────────
+' AUTH SERVICE  (banco: auth_db / MySQL)
+' ─────────────────────────────────────────────
+package "auth-service (auth_db)" #FFEEBB {
+
+  class Credential {
+    + id          : UUID
+    + userId      : UUID
+    + email       : String
+    + passwordHash : String
+    + passwordSalt : String
+    + createdAt   : DateTime
+    --
+    + validate(password) : Boolean
+  }
+
+  class RefreshToken {
+    + id        : UUID
+    + userId    : UUID
+    + tokenHash : String
+    + expiresAt : DateTime
+    --
+    + isExpired() : Boolean
+  }
+
+  class AuthService {
+    + login(email, password) : TokenPair
+    + logout(refreshToken) : void
+    + refresh(refreshToken) : AccessToken
+    + verify(accessToken) : UserPayload
+    + register(userId, email, password) : void
+  }
+
+  Credential "1" -- "0..*" RefreshToken : userId
+  AuthService ..> Credential
+  AuthService ..> RefreshToken
+}
+
+' ─────────────────────────────────────────────
+' USER SERVICE  (banco: users_db / PostgreSQL)
+' ─────────────────────────────────────────────
+package "user-service (users_db)" #DDEEFF {
+
+  enum Role {
+    ADMIN
+    LOJISTA
+    CLIENTE
+  }
+
+  class User {
+    + id        : UUID
+    + email     : String
+    + role      : Role
+    + createdAt : DateTime
+    --
+    + hasRole(role) : Boolean
+  }
+
+  class UserService {
+    + createUser(email, password, role) : User
+    + getUserById(id) : User
+    + updateRole(id, role) : User
+    + verifyPermission(userId, role) : Boolean
+  }
+
+  User --> Role
+  UserService ..> User
+}
+
+' ─────────────────────────────────────────────
+' STORE SERVICE  (banco: store_db / PostgreSQL)
+' ─────────────────────────────────────────────
+package "store-service (store_db)" #EEFFEE {
+
+  class Store {
+    + id          : UUID
+    + name        : String
+    + description : String
+    + logoURL     : String
+    + ownerId     : UUID
+    + createdAt   : DateTime
+  }
+
+  class Product {
+    + id        : UUID
+    + name      : String
+    + price     : Decimal
+    + storeId   : UUID
+    + mediaURLs : String[]
+    + createdAt : DateTime
+  }
+
+  enum VisitStatus {
+    PENDING
+    CONFIRMED
+    CANCELLED
+  }
+
+  class Visit {
+    + id          : UUID
+    + clientId    : UUID
+    + productId   : UUID
+    + scheduledAt : DateTime
+    + status      : VisitStatus
+    + notes       : String
+    + createdAt   : DateTime
+    --
+    + canConfirm() : Boolean
+    + canCancel()  : Boolean
+  }
+
+  class StoreService {
+    + createStore(ownerId, data) : Store
+    + getStore(id) : Store
+    + listStores() : Store[]
+    + updateStore(id, data) : Store
+  }
+
+  class ProductService {
+    + createProduct(storeId, data) : Product
+    + getProduct(id) : Product
+    + listProducts(storeId) : Product[]
+    + uploadMedia(productId, file) : String
+  }
+
+  class VisitService {
+    + scheduleVisit(clientId, productId, date) : Visit
+    + listVisits(userId, role) : Visit[]
+    + getVisit(id) : Visit
+    + updateStatus(id, status, requesterId) : Visit
+  }
+
+  Store "1" *-- "0..*" Product  : contém
+  Product "1" *-- "0..*" Visit  : recebe
+  Visit --> VisitStatus
+
+  StoreService ..> Store
+  ProductService ..> Product
+  VisitService ..> Visit
+}
+
+' ─────────────────────────────────────────────
+' PAYMENT SERVICE  (banco: payment_db / PostgreSQL)
+' ─────────────────────────────────────────────
+package "payment-service (payment_db)" #FFEEEE {
+
+  enum SubscriptionStatus {
+    ACTIVE
+    EXPIRED
+    CANCELLED
+  }
+
+  class PaymentPlan {
+    + id          : UUID
+    + name        : String
+    + price       : Decimal
+    + features    : String[]
+    + durationDays : Int
+  }
+
+  class Subscription {
+    + id        : UUID
+    + lojistaId : UUID
+    + planId    : UUID
+    + status    : SubscriptionStatus
+    + expiresAt : DateTime
+    + createdAt : DateTime
+    --
+    + isActive() : Boolean
+  }
+
+  class PaymentService {
+    + listPlans() : PaymentPlan[]
+    + createCheckoutSession(lojistaId, planId) : String
+    + handleWebhook(event) : void
+    + getSubscriptionStatus(lojistaId) : Subscription
+  }
+
+  Subscription --> SubscriptionStatus
+  Subscription "0..*" --> "1" PaymentPlan : assina
+  PaymentService ..> Subscription
+  PaymentService ..> PaymentPlan
+}
+
+' ─────────────────────────────────────────────
+' RELAÇÕES ENTRE SERVIÇOS (referências por ID)
+' ─────────────────────────────────────────────
+User "1" ..> "0..*" Store        : ownerId (lojista)
+User "1" ..> "0..*" Visit        : clientId
+User "1" ..> "0..*" Subscription : lojistaId
+
+note bottom of User
+  Referência por UUID.
+  Sem FK direta entre bancos.
+end note
+
+@enduml

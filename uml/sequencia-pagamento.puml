@@ -1,0 +1,88 @@
+@startuml sequencia-pagamento
+title Sequência: Assinatura de Plano pelo Lojista (Stripe)
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+
+actor       "Lojista"             as lojista
+participant "BFF (Nuxt)"          as bff
+participant "auth-service\n:3001" as auth
+participant "payment-service\n:3003" as payment
+database    "payment_db\n(PostgreSQL)" as db
+participant "Stripe API"          as stripe
+
+== 1. Lojista visualiza planos disponíveis ==
+
+lojista -> bff : GET /plans
+bff -> payment : GET http://payment-service:3003/plan
+payment -> db  : SELECT * FROM payment_plans
+db --> payment : plans rows
+payment --> bff : 200 [ { id, name, price, features, durationDays }, ... ]
+bff --> lojista : 200 lista de planos
+
+== 2. Lojista inicia checkout ==
+
+lojista -> bff : POST /payment/checkout\n{ planId }\nAuthorization: Bearer <token>
+
+bff -> auth : POST http://auth-service:3001/verify\nAuthorization: Bearer <token>
+auth --> bff : 200 { user: { id, email } }
+
+bff -> payment : POST http://payment-service:3003/payment/checkout\n{ planId }\nAuthorization: Bearer <token>
+
+payment -> auth : POST http://auth-service:3001/verify
+auth --> payment : 200 { user: { id, email } }
+
+payment -> db : SELECT plan WHERE id = planId
+db --> payment : plan row
+
+payment -> stripe : POST /v1/checkout/sessions\n{ price_id, success_url, cancel_url,\n  metadata: { lojistaId, planId } }
+stripe --> payment : { id, url: "https://checkout.stripe.com/..." }
+
+payment --> bff : 200 { checkoutUrl }
+bff --> lojista : redirect para Stripe Checkout
+
+== 3. Lojista completa o pagamento no Stripe ==
+
+lojista -> stripe : Preenche dados de pagamento e confirma
+
+stripe --> lojista : Redireciona para success_url
+
+== 4. Stripe envia webhook para o sistema ==
+
+stripe -> payment : POST http://payment-service:3003/payment/webhook\n{ type: "checkout.session.completed",\n  data: { metadata: { lojistaId, planId } } }
+
+payment -> payment : Valida assinatura do webhook\n(stripe.webhooks.constructEvent)
+
+alt evento válido
+  payment -> db : SELECT subscription WHERE lojistaId = ?
+
+  alt assinatura já existe
+    payment -> db : UPDATE subscriptions\nSET status="ACTIVE", expiresAt=NOW()+durationDays
+  else primeira assinatura
+    payment -> db : INSERT INTO subscriptions\n(id, lojistaId, planId, status="ACTIVE", expiresAt)
+  end
+
+  db --> payment : OK
+  payment --> stripe : 200 OK
+
+  note over payment : Pub/Sub (fase futura):\npublica "subscription.activated"\nstore-service libera criação de lojas
+
+else assinatura cancelada / expirada
+  stripe -> payment : POST /payment/webhook\n{ type: "customer.subscription.deleted" }
+  payment -> db : UPDATE subscriptions SET status="CANCELLED"
+  db --> payment : OK
+  payment --> stripe : 200 OK
+end
+
+== 5. Lojista consulta status da assinatura ==
+
+lojista -> bff : GET /payment/status\nAuthorization: Bearer <token>
+bff -> payment : GET http://payment-service:3003/plan/status\nAuthorization: Bearer <token>
+payment -> auth : POST http://auth-service:3001/verify
+auth --> payment : 200 { user }
+payment -> db : SELECT subscription WHERE lojistaId = ? ORDER BY createdAt DESC LIMIT 1
+db --> payment : subscription row
+payment --> bff : 200 { status, expiresAt, plan }
+bff --> lojista : 200 status da assinatura
+
+@enduml

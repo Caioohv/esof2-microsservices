@@ -1,0 +1,60 @@
+@startuml sequencia-login
+title Sequência: Login de usuário
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+
+actor       "Usuário"       as user
+participant "BFF (Nuxt)"    as bff
+participant "auth-service"  as auth
+database    "auth_db\n(MySQL)" as db
+
+== Login ==
+
+user -> bff : POST /api/auth/login\n{ email, password }
+
+bff -> auth : POST http://auth-service:3001/login\n{ email, password }
+
+auth -> db : SELECT * FROM credentials\nWHERE email = ?
+
+alt credencial encontrada
+  db --> auth : credential row
+  auth -> auth : hashPassword(password, salt)\ncompara com password_hash
+
+  alt senha correta
+    auth -> auth : issueAccessToken({ sub, email })\nissueRefreshToken({ sub, email })
+    auth -> db : INSERT INTO refresh_tokens\n(id, user_id, token_hash, expires_at)
+    db --> auth : OK
+    auth --> bff : 200 { access_token, refresh_token }
+    bff --> user : 200 { access_token, refresh_token }
+  else senha incorreta
+    auth --> bff : 401 { error: "invalid credentials" }
+    bff --> user : 401 Unauthorized
+  end
+
+else credencial não encontrada
+  db --> auth : empty result
+  auth --> bff : 401 { error: "invalid credentials" }
+  bff --> user : 401 Unauthorized
+end
+
+== Renovação de Token (Refresh) ==
+
+user -> bff : POST /api/auth/refresh\n{ refresh_token }
+
+bff -> auth : POST http://auth-service:3001/refresh\n{ refresh_token }
+
+auth -> auth : verifyRefreshToken(token)
+
+auth -> db : SELECT id FROM refresh_tokens\nWHERE token_hash = ? AND expires_at > NOW()
+
+alt token válido e ativo
+  db --> auth : token row
+  auth --> bff : 200 { access_token }
+  bff --> user : 200 { access_token }
+else token inválido ou revogado
+  auth --> bff : 401 { error: "refresh token revoked or expired" }
+  bff --> user : 401 Unauthorized
+end
+
+@enduml

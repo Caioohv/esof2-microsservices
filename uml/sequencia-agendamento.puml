@@ -1,0 +1,92 @@
+@startuml sequencia-agendamento
+title Sequência: Agendamento de Visita (Cliente)
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+
+actor       "Cliente"          as cliente
+participant "BFF (Nuxt)"       as bff
+participant "auth-service\n:3001" as auth
+participant "user-service\n:3002" as users
+participant "store-service\n:3004" as store
+database    "store_db\n(PostgreSQL)" as db
+
+== 1. Cliente visualiza produto ==
+
+cliente -> bff : GET /stores/{storeId}/products/{productId}
+
+bff -> store : GET http://store-service:3004/product/{productId}
+store -> db   : SELECT product WHERE id = ?
+db --> store  : product row
+store --> bff : 200 { product }
+bff --> cliente : 200 product detail page
+
+== 2. Cliente agenda visita ==
+
+cliente -> bff : POST /visits\n{ productId, scheduledAt }\nAuthorization: Bearer <token>
+
+bff -> auth : POST http://auth-service:3001/verify\nAuthorization: Bearer <token>
+
+alt token válido
+  auth --> bff : 200 { valid: true, user: { id, email } }
+
+  bff -> store : POST http://store-service:3004/visit\n{ productId, scheduledAt }\nAuthorization: Bearer <token>
+
+  store -> auth : POST http://auth-service:3001/verify\nAuthorization: Bearer <token>
+  auth --> store : 200 { user: { id, email } }
+
+  store -> users : GET http://user-service:3002/user/{clientId}
+  users --> store : 200 { id, role: "CLIENTE" }
+
+  alt role CLIENTE confirmado
+    store -> db : INSERT INTO visits\n(id, clientId, productId, scheduledAt, status="pending")
+    db --> store : OK
+
+    note over store : Pub/Sub (fase futura):\npublica evento "visit.scheduled"\npara notificar o Lojista
+
+    store --> bff : 201 { visitId, status: "pending" }
+    bff --> cliente : 201 Visita agendada com sucesso
+  else usuário sem permissão
+    store --> bff : 403 Forbidden
+    bff --> cliente : 403 Acesso negado
+  end
+
+else token inválido
+  auth --> bff : 401 { valid: false }
+  bff --> cliente : 401 Unauthorized
+end
+
+== 3. Lojista confirma visita ==
+
+actor "Lojista" as lojista
+
+lojista -> bff : PUT /visits/{visitId}\n{ status: "confirmed" }\nAuthorization: Bearer <lojista_token>
+
+bff -> auth : POST http://auth-service:3001/verify\nAuthorization: Bearer <lojista_token>
+auth --> bff : 200 { user: { id, email } }
+
+bff -> store : PUT http://store-service:3004/visit/{visitId}\n{ status: "confirmed" }
+
+store -> auth : POST http://auth-service:3001/verify
+auth --> store : 200 { user }
+
+store -> db : SELECT visit WHERE id = ?
+db --> store : visit row (status=pending)
+
+store -> db : SELECT store WHERE ownerId = requesterId
+db --> store : store row
+
+alt lojista é dono da loja do produto
+  store -> db : UPDATE visits SET status="confirmed" WHERE id = ?
+  db --> store : OK
+
+  note over store : Pub/Sub (fase futura):\npublica evento "visit.confirmed"\npara notificar o Cliente
+
+  store --> bff : 200 { visitId, status: "confirmed" }
+  bff --> lojista : 200 Visita confirmada
+else não autorizado
+  store --> bff : 403 Forbidden
+  bff --> lojista : 403 Acesso negado
+end
+
+@enduml
