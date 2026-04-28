@@ -1,30 +1,39 @@
 # Task 2: Auth Service Bootstrap
 
-**Goal**: Initialize the Authentication microservice using NestJS to handle user login and token generation.
+**Goal**: Initialize the Authentication microservice using Express to handle user login and token generation.
 
 **Roadmap Phase**: Phase 2: Identity & Access Management (IAM)
 
 **Context**: 
 - Service name: `auth-service`.
-- Framework: NestJS (Preferred for microservices logic).
-- Responsibilities: JWT generation, Login, Logout, Refresh Tokens.
+- Framework: Express (Node.js).
+- Database: MySQL (mysql2 driver).
+- Hashing: Node.js built-in `crypto` (PBKDF2).
+- Responsibilities: JWT generation, Login, Logout, Refresh Tokens, Credential storage.
+- Auth service owns the `credentials` and `refresh_tokens` tables.
+- Other services verify tokens via `POST /verify`.
+- `POST /register` is an internal endpoint called by user-service to store credentials.
 
 **Steps**:
-1. Initialize a new NestJS project in `services/auth-service`.
-2. Install necessary dependencies: `@nestjs/jwt`, `passport-jwt`, `bcrypt`.
-3. Configure `JwtModule` with a secret and expiration time.
-4. Implement `/login` endpoint (validates credentials against User service or direct DB for POC).
-5. Implement `/verify` endpoint for token validation (used by other services).
-6. Setup `Dockerfile` for the service.
+- [x] Initialize Express project in `services/auth-service`.
+- [x] Install dependencies: `express`, `jsonwebtoken`, `mysql2`.
+- [x] Implement `POST /login` — validate credentials, issue access + refresh tokens.
+- [x] Implement `POST /logout` — revoke refresh token.
+- [x] Implement `POST /refresh` — issue new access token from valid refresh token.
+- [x] Implement `POST /verify` — validate access token, return user info.
+- [x] Implement `POST /register` — internal endpoint for credential creation.
+- [x] Setup `init.sql` with `credentials` and `refresh_tokens` tables.
+- [x] Setup `Dockerfile` for the service.
+- [x] Add auth-service to `docker-compose.yml`.
 
 **Acceptance criteria**:
-- Auth service starts on a dedicated port (e.g., 3001).
-- `/login` returns a valid JWT given correct credentials.
-- `/verify` returns 200/401 based on token validity.
+- Auth service starts on port 3001.
+- `POST /login` returns `access_token` + `refresh_token` given valid credentials.
+- `POST /verify` returns 200 + user payload or 401.
+- `POST /refresh` returns new access token from valid refresh token.
+- `POST /logout` deletes refresh token from DB.
 
-**Files to create/modify**:
+**Files created/modified**:
 - [NEW] `services/auth-service/`
-- [MODIFY] `docker-compose.yml` (add auth-service)
-
-**Open questions**:
-- Will the Auth service manage the user credentials database directly, or will it talk to the User service via gRPC/RabbitMQ?
+- [NEW] `docker-compose.yml`
+- [NEW] `.env.example`
