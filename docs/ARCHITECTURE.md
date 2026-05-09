@@ -1,23 +1,23 @@
 # Architecture Map - High-Ticket Showcase Platform
 
-## 📊 Visual Architecture
+## Visual Architecture
 
 ![Architecture Diagram](./ARCHITECTURE.svg)
 
-## 🏗️ Overview
+## Overview
 
 Este é um sistema distribuído de microsserviços que funciona como uma **vitrine para itens de alto valor** (carros, imóveis). A plataforma conecta clientes ricos com vendedores, facilitando agendamento de visitas.
 
 **Stack Principal:**
-- 🟟 **Node.js/JavaScript** - Linguagem primária
-- 🐘 **PostgreSQL** - Banco de dados principal
-- 🐳 **Docker** - Containerização
-- 🔀 **Nginx** - Reverse proxy
-- 💜 **Nuxt 3** - Frontend + BFF
+- **Node.js/JavaScript** - Linguagem primária
+- **PostgreSQL** - Banco de dados principal
+- **Docker** - Containerização
+- **Nginx** - Reverse proxy
+- **Nuxt 3** - Frontend + BFF
 
 ---
 
-## 🔑 Estrutura de Camadas
+## Estrutura de Camadas
 
 ### Camada 1: Cliente (Client Layer)
 
@@ -66,7 +66,7 @@ Este é um sistema distribuído de microsserviços que funciona como uma **vitri
 
 ### Camada 3: Microserviços (Microservices Layer)
 
-#### 🔐 Auth Service (Port 3001)
+#### Auth Service (Port 3001)
 
 **Propósito:**
 - Autenticação centralizada
@@ -93,7 +93,7 @@ Este é um sistema distribuído de microsserviços que funciona como uma **vitri
 
 ---
 
-#### 👥 User Service (Port 3002)
+#### User Service (Port 3002)
 
 **Propósito:**
 - Gerenciar identidades de usuários
@@ -124,7 +124,7 @@ Este é um sistema distribuído de microsserviços que funciona como uma **vitri
 
 ---
 
-#### 🏪 Store Service (Port 3004)
+#### Store Service (Port 3004)
 
 **Propósito:**
 - Core business logic
@@ -159,7 +159,7 @@ Este é um sistema distribuído de microsserviços que funciona como uma **vitri
 
 ---
 
-#### 💳 Payment Service (Port 3003)
+#### Payment Service (Port 3003)
 
 **Propósito:**
 - Gerenciar planos de subscripção
@@ -187,7 +187,7 @@ Este é um sistema distribuído de microsserviços que funciona como uma **vitri
 
 ---
 
-#### 📅 Visit Scheduler Service (Port 3005) - *Planned*
+#### Visit Scheduler Service (Port 3005) - *Planned*
 
 **Propósito:**
 - Lógica avançada de agendamento
@@ -200,7 +200,7 @@ Este é um sistema distribuído de microsserviços que funciona como uma **vitri
 
 ### Camada 4: Dados (Data Layer)
 
-#### 🐘 PostgreSQL Cluster
+#### PostgreSQL Cluster
 
 **Estrutura:**
 ```
@@ -217,7 +217,7 @@ PostgreSQL (Single container em dev, cluster em prod)
 > - Escalabilidade: podem usar diferentes engines/configs
 > - Falha isolada: problema em um DB não afeta outros
 
-#### 🪣 MinIO (S3-compatible Storage)
+#### MinIO (S3-compatible Storage)
 
 **Uso:**
 - Armazenar imagens de produtos
@@ -229,7 +229,7 @@ PostgreSQL (Single container em dev, cluster em prod)
 - Localmente com MinIO em dev
 - Production ready
 
-#### ⚡ Redis (Opcional)
+#### Redis (Opcional)
 
 **Potencial Uso:**
 - Cache de sessões
@@ -240,7 +240,7 @@ PostgreSQL (Single container em dev, cluster em prod)
 
 ---
 
-## 🔄 Fluxos de Comunicação
+## Fluxos de Comunicação
 
 ### Fluxo 1: Login
 
@@ -303,7 +303,7 @@ PostgreSQL (Single container em dev, cluster em prod)
 
 ---
 
-## 🎯 Decisões Arquiteturais Principais
+## Decisões Arquiteturais Principais
 
 ### 1. Microsserviços vs Monolítico
 
@@ -411,7 +411,7 @@ Nuxt 3 (port 3000)
 
 ---
 
-## 📅 Roadmap por Fase
+## Roadmap por Fase
 
 ### Phase 1: Foundation & Infrastructure
 - [ ] Docker Compose setup
@@ -441,7 +441,7 @@ Nuxt 3 (port 3000)
 
 ---
 
-## 🔐 Segurança
+## Segurança
 
 ### Por Serviço
 
@@ -472,15 +472,15 @@ Serviço processa requisição com user info
 
 ### Dados Sensíveis
 
-- ✅ Senhas: Hasheadas com PBKDF2 (100k iterações)
-- ✅ Tokens: Armazenados como SHA256 no DB (não em plaintext)
-- ✅ Secrets: Em `.env`, NUNCA em código
-- ✅ CORS: Configurado por serviço
-- ✅ Rate Limiting: Nginx (a implementar)
+- Senhas: Hasheadas com PBKDF2 (100k iterações)
+- Tokens: Armazenados como SHA256 no DB (não em plaintext)
+- Secrets: Em `.env`, NUNCA em código
+- CORS: Configurado por serviço
+- Rate Limiting: Nginx (a implementar)
 
 ---
 
-## 🚀 Deploy
+## Deploy
 
 ### Development
 ```bash
@@ -497,7 +497,7 @@ docker-compose up
 
 ---
 
-## 📞 Documentação por Serviço
+## Documentação por Serviço
 
 - **[Auth Service](./services/auth/README.md)** - Documentação completa
 - **User Service** - (em desenvolvimento)
@@ -507,7 +507,7 @@ docker-compose up
 
 ---
 
-## 🔍 Referências
+## Referências
 
 - Especificação completa: [spec.md](./.agent-files/context/spec.md)
 - Goals: [goals.md](./.agent-files/context/goals.md)

@@ -1,6 +1,6 @@
-# 🗺️ Architecture Map - Complete Guide
+# Architecture Map - Complete Guide
 
-## 📊 Visual Representations
+## Visual Representations
 
 ### 1. **Architecture Diagram (SVG)**
 **File:** [`ARCHITECTURE.svg`](./ARCHITECTURE.svg)
@@ -50,16 +50,16 @@ Structured data format containing:
 
 ---
 
-## 🎯 Quick Navigation
+## Quick Navigation
 
 ### By Role
 
-#### 👨‍💼 **Project Manager / Stakeholder**
+#### **Project Manager / Stakeholder**
 1. Start: [ARCHITECTURE.md - Overview](./ARCHITECTURE.md#overview)
 2. Review: [Roadmap](./ARCHITECTURE.md#-roadmap-por-fase)
 3. Reference: [ARCHITECTURE.svg](./ARCHITECTURE.svg) (visual overview)
 
-#### 👨‍💻 **Backend Developer**
+#### **Backend Developer**
 1. Study: [ARCHITECTURE.md - Microservices](./ARCHITECTURE.md#camada-3-microserviços-microservices-layer)
 2. Check: Service-specific documentation:
    - [Auth Service Docs](./services/auth/README.md)
@@ -69,33 +69,33 @@ Structured data format containing:
 3. Reference: [Communication Flows](./ARCHITECTURE.md#-fluxos-de-comunicação)
 4. Implement: Use [architecture.yaml](./architecture.yaml) for exact specs
 
-#### 🎨 **Frontend Developer**
+#### **Frontend Developer**
 1. Review: [Frontend Architecture](./ARCHITECTURE.md#frontend-architecture)
 2. Understand: [BFF Pattern](./ARCHITECTURE.md#-fluxos-de-comunicação)
 3. Check: [Fluxo de Requisição Autenticada](./ARCHITECTURE.md#fluxo-2-requisição-autenticada)
 4. Integrate: Follow [Auth Service Integration Guide](./services/auth/INTEGRATION.md#integração-no-frontend)
 
-#### 🛠️ **DevOps / Infrastructure**
+#### **DevOps / Infrastructure**
 1. Review: [Data Layer](./ARCHITECTURE.md#camada-4-dados-data-layer)
 2. Setup: [Docker deployment](./ARCHITECTURE.md#-deploy)
 3. Configure: Use [architecture.yaml](./architecture.yaml) for service specs
 4. Monitor: [Security & Monitoring](./ARCHITECTURE.md#-segurança)
 
-#### 🔒 **Security / Compliance**
+#### **Security / Compliance**
 1. Study: [Security Section](./ARCHITECTURE.md#-segurança)
 2. Verify: [Auth Flow](./ARCHITECTURE.md#fluxo-2-requisição-autenticada)
 3. Reference: [Data Models](./architecture.yaml#data_models)
 
 ---
 
-## 📚 Documentation Structure
+## Documentation Structure
 
 ```
 docs/
-├── ARCHITECTURE.md              # 📖 Main guide (detailed)
-├── ARCHITECTURE.svg             # 🖼️ Visual diagram
-├── architecture.yaml            # 📋 Machine-readable spec
-├── ARCHITECTURE_INDEX.md        # 📍 This file
+├── ARCHITECTURE.md              - Main guide (detailed)
+├── ARCHITECTURE.svg             - Visual diagram
+├── architecture.yaml            - Machine-readable spec
+├── ARCHITECTURE_INDEX.md        - This file
 │
 ├── services/
 │   └── auth/
@@ -113,7 +113,7 @@ docs/
 
 ---
 
-## 🔑 Key Architectural Decisions at a Glance
+## Key Architectural Decisions at a Glance
 
 | Decision | What | Why | Trade-off |
 |----------|------|-----|-----------|
@@ -127,7 +127,7 @@ docs/
 
 ---
 
-## 🏛️ System Layers Visualization
+## System Layers Visualization
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -161,7 +161,7 @@ docs/
 
 ---
 
-## 🚀 Service Endpoints Quick Reference
+## Service Endpoints Quick Reference
 
 ### Auth Service (3001)
 ```
@@ -204,7 +204,7 @@ POST   /webhooks/payment   - Payment gateway webhook
 
 ---
 
-## 🔄 Main Communication Flows
+## Main Communication Flows
 
 ### 1. **Authentication Flow**
 ```
@@ -244,7 +244,7 @@ User Data → Frontend → BFF
 
 ---
 
-## 📅 Development Phases
+## Development Phases
 
 | Phase | Focus | Status |
 |-------|-------|--------|
@@ -257,7 +257,7 @@ User Data → Frontend → BFF
 
 ---
 
-## 🔗 Cross-References
+## Cross-References
 
 ### Service Documentation
 - **[Auth Service Complete Docs](./services/auth/README.md)** - All you need to know about authentication
@@ -277,7 +277,7 @@ User Data → Frontend → BFF
 
 ---
 
-## 💡 How to Use This Documentation
+## How to Use This Documentation
 
 ### Scenario 1: "I need to understand the system"
 1. View [`ARCHITECTURE.svg`](./ARCHITECTURE.svg) (2 min)
@@ -305,19 +305,19 @@ User Data → Frontend → BFF
 
 ---
 
-## 🎯 Success Metrics
+## Success Metrics
 
 This architecture aims for:
-- ✅ **Seamless Integration** - Services work together smoothly
-- ✅ **Fast APIs** - Sub-200ms response times
-- ✅ **High Availability** - 99.9% uptime
-- ✅ **Premium UX** - Responsive, beautiful interface
-- ✅ **Maintainability** - Clear patterns, easy to extend
-- ✅ **Scalability** - Handle growth without redesign
+- **Seamless Integration** - Services work together smoothly
+- **Fast APIs** - Sub-200ms response times
+- **High Availability** - 99.9% uptime
+- **Premium UX** - Responsive, beautiful interface
+- **Maintainability** - Clear patterns, easy to extend
+- **Scalability** - Handle growth without redesign
 
 ---
 
-## 📞 Questions?
+## Questions?
 
 ### Architecture Questions
 → See [`ARCHITECTURE.md`](./ARCHITECTURE.md)
@@ -333,7 +333,7 @@ This architecture aims for:
 
 ---
 
-## 📝 Document Versions
+## Document Versions
 
 | Document | Version | Last Updated | Format |
 |----------|---------|--------------|--------|
@@ -344,4 +344,4 @@ This architecture aims for:
 
 ---
 
-**Start exploring the architecture now! Pick a format that works best for you.** 🚀
+**Start exploring the architecture now! Pick a format that works best for you.**
