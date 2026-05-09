@@ -2,7 +2,7 @@
 
 Instruções para integrar o Auth Service em outros microserviços.
 
-## 📋 Índice
+## Índice
 
 1. [Overview](#overview)
 2. [Setup Inicial](#setup-inicial)
@@ -670,20 +670,20 @@ async function makeAuthenticatedRequest(url, options = {}, retries = 3) {
 
 ## Boas Práticas
 
-### ✅ Faça
+### Faça
 
 1. **Armazenar tokens com cuidado**
    ```javascript
-   // ✅ Bom: localStorage
+   // Bom: localStorage
    localStorage.setItem('access_token', token);
    
-   // ✅ Melhor: sessionStorage (expires com a aba)
+   // Melhor: sessionStorage (expires com a aba)
    sessionStorage.setItem('access_token', token);
    ```
 
 2. **Renovar tokens antes de expirar**
    ```javascript
-   // ✅ Bom: Verificar tempo restante
+   // Bom: Verificar tempo restante
    function isTokenExpiringSoon(token) {
      const decoded = jwt_decode(token);
      const expiresIn = decoded.exp * 1000 - Date.now();
@@ -703,43 +703,43 @@ async function makeAuthenticatedRequest(url, options = {}, retries = 3) {
    });
    ```
 
-### ❌ Evite
+### Evite
 
 1. **Armazenar tokens em cookies sem flags de segurança**
    ```javascript
-   // ❌ Ruim: Cookie sem proteção
+   // Ruim: Cookie sem proteção
    document.cookie = `token=${token}`;
    
-   // ✅ Bom: Cookie seguro (se usar)
+   // Bom: Cookie seguro (se usar)
    // Configure no backend com httpOnly, Secure, SameSite
    ```
 
 2. **Expor tokens em logs ou erro messages**
    ```javascript
-   // ❌ Ruim
+   // Ruim
    console.log('Token:', token);
    alert(`Login failed: ${error.message}`);
    
-   // ✅ Bom
+   // Bom
    console.error('Authentication failed'); // sem detalhes
    showGenericError('Email ou senha incorretos');
    ```
 
 3. **Confiar apenas no frontend para autorização**
    ```javascript
-   // ❌ Ruim: Apenas verificar no frontend
+   // Ruim: Apenas verificar no frontend
    if (user.role === 'admin') { ... }
    
-   // ✅ Bom: Sempre verificar no backend
+   // Bom: Sempre verificar no backend
    // Backend valida permissões com o token JWT
    ```
 
 4. **Armazenar dados sensíveis no token**
    ```javascript
-   // ❌ Ruim
+   // Ruim
    const payload = { user_id, email, password_hash, credit_card };
    
-   // ✅ Bom
+   // Bom
    const payload = { sub: user_id, email };
    // Dados sensíveis permanecem apenas no servidor
    ```

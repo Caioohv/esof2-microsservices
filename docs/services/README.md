@@ -2,9 +2,9 @@
 
 Documentação dos microserviços da plataforma.
 
-## 📚 Serviços Disponíveis
+## Serviços Disponíveis
 
-### 🔐 [Auth Service](./auth/)
+### [Auth Service](./auth/)
 
 Serviço centralizado de autenticação e autorização.
 
@@ -28,7 +28,7 @@ Serviço centralizado de autenticação e autorização.
 
 ---
 
-## 🚀 Como Começar
+## Como Começar
 
 ### 1. Para Desenvolvedores do Backend
 
@@ -56,11 +56,11 @@ Se você vai fazer deploy:
 
 ---
 
-## 🔗 Integração Entre Serviços
+## Integração Entre Serviços
 
 ```
 ┌──────────────┐
-│  Frontend    │
+│  Frontend   │
 └──────┬───────┘
        │ Login/Autenticação
        │
@@ -71,8 +71,8 @@ Se você vai fazer deploy:
       │ Valida Tokens
       │
 ┌─────┴────────────────┐
-│  Outros Serviços     │
-│  (User, Store, etc)  │
+│  Outros Serviços    │
+│  (User, Store, etc) │
 └──────────────────────┘
 ```
 
@@ -80,7 +80,7 @@ Todos os serviços usam o Auth Service como fonte de verdade para autenticação
 
 ---
 
-## 📋 Estrutura da Documentação
+## Estrutura da Documentação
 
 ```
 docs/
@@ -97,24 +97,24 @@ docs/
 
 ---
 
-## 🔐 Segurança
+## Segurança
 
 Todos os serviços devem:
 
-- ✅ Validar tokens do Auth Service antes de processar requisições
-- ✅ Nunca armazenar senhas (isso é responsabilidade do Auth Service)
-- ✅ Usar HTTPS em produção
-- ✅ Não expor tokens em logs ou mensagens de erro
+- Validar tokens do Auth Service antes de processar requisições
+- Nunca armazenar senhas (isso é responsabilidade do Auth Service)
+- Usar HTTPS em produção
+- Não expor tokens em logs ou mensagens de erro
 
 ---
 
-## 💡 Troubleshooting Comum
+## Troubleshooting Comum
 
 ### Erro "invalid token" mesmo com token válido
 → Ver [Troubleshooting - Token não é reconhecido](./auth/INTEGRATION.md#token-não-é-reconhecido-por-outro-serviço)
 
 ### Como renovar um token expirado?
-→ Ver [Auth Service - Renovação de Token](./auth/FLOW.md#3️⃣-renovação-de-token-refresh)
+→ Ver [Auth Service - Renovação de Token](./auth/FLOW.md#3-renovação-de-token-refresh)
 
 ### Como fazer logout?
 → Ver [Auth Service - Logout](./auth/API.md#-post-logout)
@@ -124,7 +124,7 @@ Todos os serviços devem:
 
 ---
 
-## 🚀 Deploy em Produção
+## Deploy em Produção
 
 **Checklist antes de fazer deploy**:
 
@@ -150,7 +150,7 @@ Dúvidas ou problemas?
 
 ---
 
-## 📖 Documentação Relacionada
+## Documentação Relacionada
 
 - [Arquitetura de Microsserviços](../../../uml/microsservicos.md)
 - [Comunicação Entre Serviços](../../../uml/comunicacao.md)
@@ -158,7 +158,7 @@ Dúvidas ou problemas?
 
 ---
 
-## 🗂️ Próximos Serviços a Documentar
+## Próximos Serviços a Documentar
 
 - [ ] User Service
 - [ ] Store Service

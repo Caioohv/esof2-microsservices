@@ -2,13 +2,13 @@
 
 Instruções completas para configurar e inicializar o Auth Service.
 
-## 📋 Pré-requisitos
+## Pré-requisitos
 
 - Node.js 18+ instalado
 - MySQL 8.0+ rodando e acessível
 - npm ou yarn
 
-## 🚀 Instalação Rápida
+## Instalação Rápida
 
 ### 1. Clonar e Instalar Dependências
 
@@ -79,12 +79,12 @@ Deve retornar status 401 (esperado, sem token):
   "error": "token required"
 }
 ```
-
-✅ Se chegou aqui, o serviço está funcionando!
+ 
+Se chegou aqui, o serviço está funcionando!
 
 ---
 
-## 📦 Docker (Opcional)
+## Docker (Opcional)
 
 ### Build da Imagem
 
@@ -267,7 +267,7 @@ curl -X POST http://localhost:3001/verify \
 }
 ```
 
-**Status**: 401 ✅
+**Status**: 401
 
 ### 2. Registrar Novo Usuário
 
@@ -290,7 +290,7 @@ curl -X POST http://localhost:3001/register \
 }
 ```
 
-**Status**: 201 ✅
+**Status**: 201
 
 ### 3. Fazer Login
 
@@ -311,7 +311,7 @@ curl -X POST http://localhost:3001/login \
 }
 ```
 
-**Status**: 200 ✅
+**Status**: 200
 
 ### 4. Verificar Access Token
 
@@ -333,7 +333,7 @@ curl -X POST http://localhost:3001/verify \
 }
 ```
 
-**Status**: 200 ✅
+**Status**: 200
 
 ### 5. Renovar Token
 
@@ -354,7 +354,7 @@ curl -X POST http://localhost:3001/refresh \
 }
 ```
 
-**Status**: 200 ✅
+**Status**: 200
 
 ### 6. Fazer Logout
 
@@ -368,11 +368,11 @@ curl -X POST http://localhost:3001/logout \
 
 **Resposta esperada**: (vazio)
 
-**Status**: 204 ✅
+**Status**: 204
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Erro: "connect ECONNREFUSED"
 
@@ -462,7 +462,7 @@ mysql -u root -p auth_db -e "DELETE FROM credentials WHERE email = 'seu@email.co
 
 ---
 
-## 📊 Monitoramento
+## Monitoramento
 
 ### Visualizar Logs
 
@@ -503,7 +503,7 @@ SELECT user_id, COUNT(*) FROM refresh_tokens GROUP BY user_id;
 
 ---
 
-## 🔐 Segurança
+## Segurança
 
 ### Checklist de Produção
 
@@ -536,7 +536,7 @@ Instalar: `npm install express-rate-limit`
 
 ---
 
-## 📞 Próximos Passos
+## Próximos Passos
 
 1. **Integrar com User Service**: O User Service deve chamar `/register` ao criar novo usuário
 2. **Integrar com Gateway/API**: O API Gateway deve validar tokens chamando `/verify`
@@ -546,7 +546,7 @@ Instalar: `npm install express-rate-limit`
 
 ---
 
-## 📚 Documentação Relacionada
+## Documentação Relacionada
 
 - [API Reference](./API.md) - Documentação dos endpoints
 - [Guia de Integração](./INTEGRATION.md) - Como integrar em outros serviços

@@ -2,62 +2,62 @@
 
 Visão detalhada de como funciona o fluxo de autenticação e autorização.
 
-## 📊 Fluxo Geral
+## Fluxo Geral
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                        FLUXO DE AUTENTICAÇÃO                        │
+│                        FLUXO DE AUTENTICAÇÃO                    │
 └─────────────────────────────────────────────────────────────────────┘
 
 ┌──────────┐                          ┌────────────────┐
-│ Cliente  │                          │ Auth Service   │
+│ Cliente  │                         │ Auth Service   │
 └────┬─────┘                          └────────────────┘
      │                                       │
      │  1. POST /login                       │
-     │  (email, password) ────────────────→ │
+     │  (email, password) ────────────────→   │
      │                                       │
      │                          2. Valida credenciais
      │                          3. Gera tokens JWT
      │                                       │
-     │ ← 200 OK                             │
-     │ {                                    │
-     │   access_token: "...",               │
-     │   refresh_token: "..."               │
-     │ }                                    │
+     │ ← 200 OK                              │
+     │ {                                     │
+     │   access_token: "...",                │
+     │   refresh_token: "..."                │
+     │ }                                     │
      │                                       │
-     │ Armazena tokens (localStorage)      │
+     │ Armazena tokens (localStorage)        │
      │                                       │
-     │  4. Próximas requisições             │
-     │  Authorization: Bearer <token>       │
-     │  ────────────────────────────────→ │
+     │  4. Próximas requisições              │
+     │  Authorization: Bearer <token>        │
+     │  ────────────────────────────────→      │
      │                                       │
      │                          5. Valida token
      │                                       │
-     │ ← 200 OK (ou 401 se expirado)       │
+     │ ← 200 OK (ou 401 se expirado)         │
      │                                       │
-     │  Se token expirado:                  │
+     │  Se token expirado:                   │
      │                                       │
-     │  6. POST /refresh                    │
-     │  (refresh_token) ──────────────────→ │
+     │  6. POST /refresh                     │
+     │  (refresh_token) ──────────────────→   │
      │                                       │
      │                          7. Valida refresh token
      │                          8. Gera novo access token
      │                                       │
-     │ ← 200 OK                             │
-     │ { access_token: "..." }              │
+     │ ← 200 OK                              │
+     │ { access_token: "..." }               │
      │                                       │
-     │  9. POST /logout                     │
-     │  (refresh_token) ──────────────────→ │
+     │  9. POST /logout                      │
+     │  (refresh_token) ──────────────────→   │
      │                                       │
      │                        10. Revoga refresh token
      │                        no banco de dados
      │                                       │
-     │ ← 204 No Content                     │
+     │ ← 204 No Content                      │
 ```
 
 ---
 
-## 1️⃣ Login (Obtenção de Tokens)
+## Login (Obtenção de Tokens)
 
 ### Fluxo Detalhado
 
@@ -141,7 +141,7 @@ Email/senha faltando
 
 ---
 
-## 2️⃣ Verificação de Acesso (Token Validation)
+## Verificação de Acesso (Token Validation)
 
 ### Fluxo Detalhado
 
@@ -180,7 +180,7 @@ Expira: 14:15:00
 
 14:00:00 ──────────────────────── 14:15:00 ──────────
          │ VÁLIDO                 │ EXPIRADO
-         │ ✅ Aceita requisição   │ ❌ Retorna 401
+         │ Aceita requisição      │ Retorna 401
          │                        │ Sugestão: renovar
          │                        │
     Usar normalmente        Fazer /refresh
@@ -208,7 +208,7 @@ Token com JWT_SECRET errado
 
 ---
 
-## 3️⃣ Renovação de Token (Refresh)
+## Renovação de Token (Refresh)
 
 ### Fluxo Detalhado
 
@@ -250,28 +250,28 @@ access_token = JWT.sign(
 
 ```
                ┌─────────────────────────┐
-               │  Refresh Token Válido   │
+               │  Refresh Token Válido  │
                └────────────┬────────────┘
                             │
                     Não foi feito logout?
                             │
                 ┌───────────┴───────────┐
-                │                       │
+                │                      │
               SIM                      NÃO
-                │                       │
-        Gera novo          Retorna 401
-        access token       (revogado)
-                │                       │
+                │                      │
+        Gera novo          Retorna 401 │
+        access token       (revogado)  │
+                │                      │
                 └───────────┬───────────┘
-                            │
+                           │
                     Validade não expirou?
-                            │
+                           │
                 ┌───────────┴───────────┐
-                │                       │
-              SIM                      NÃO
-                │                       │
+                │                      │
+              SIM                     NÃO
+                │                      │
           Retorna novo         Retorna 401
-          token ✅            (expirado)
+          token                (expirado)
                             Fazer novo login
 ```
 
@@ -330,7 +330,7 @@ Refresh token não enviado
 
 ---
 
-## 4️⃣ Logout (Revogação de Token)
+## Logout (Revogação de Token)
 
 ### Fluxo Detalhado
 
@@ -394,9 +394,9 @@ db.query("DELETE FROM refresh_tokens WHERE token_hash = ?", [token_hash])
 ```
 14:00 Login bem-sucedido
       │
-      ├─ Access Token: expira 14:15 ✅
+      ├─ Access Token: expira 14:15
       │
-      └─ Refresh Token: expira em 7d, armazenado no DB ✅
+      └─ Refresh Token: expira em 7d, armazenado no DB
 
 14:05 POST /logout (com refresh token)
       │
@@ -406,16 +406,16 @@ db.query("DELETE FROM refresh_tokens WHERE token_hash = ?", [token_hash])
 
 14:06 Tentar fazer requisição com access token
       │
-      └─ Funciona ✅ (ainda válido por ~9 min)
+      └─ Funciona (ainda válido por ~9 min)
 
 14:07 Tentar POST /refresh (com refresh revogado)
       │
-      └─ 401 Unauthorized ❌
+      └─ 401 Unauthorized
          "refresh token revoked or expired"
 
 14:10 Tentar fazer requisição com access token
       │
-      └─ Funciona ✅ (ainda válido por ~5 min)
+      └─ Funciona (ainda válido por ~5 min)
 
 14:15 Access Token expira naturalmente
       │
@@ -426,11 +426,11 @@ db.query("DELETE FROM refresh_tokens WHERE token_hash = ?", [token_hash])
 
 ---
 
-## 🔄 Fluxo Completo: Do Login ao Logout
+## Fluxo Completo: Do Login ao Logout
 
 ```
 ┌────────────────────────────────────────────────────────────────┐
-│                  FLUXO COMPLETO DE SESSÃO                      │
+│                  FLUXO COMPLETO DE SESSÃO                  │
 └────────────────────────────────────────────────────────────────┘
 
 1. AUTENTICAÇÃO
@@ -476,7 +476,7 @@ db.query("DELETE FROM refresh_tokens WHERE token_hash = ?", [token_hash])
 
 ---
 
-## 🛡️ Segurança no Fluxo
+## Segurança no Fluxo
 
 ### Por que dois tokens?
 
@@ -515,7 +515,7 @@ PBKDF2 com Salt Único
 
 ---
 
-## 📈 Escalabilidade
+## Escalabilidade
 
 ### Considerações para múltiplos Auth Services
 
@@ -538,7 +538,7 @@ Opção 3: Token Blacklist
 
 ---
 
-## 🔐 Diagrama de Estados de Token
+## Diagrama de Estados de Token
 
 ```
                     CRIADO
@@ -546,23 +546,23 @@ Opção 3: Token Blacklist
                       │ JWT.sign()
                       ▼
             ┌─────────────────┐
-            │  VÁLIDO ✅      │◄──────┐
-            │ (não expirado)  │       │
+            │  VÁLIDO        │◄──────┐
+            │ (não expirado) │       │
             └─────────┬───────┘       │
                       │              │ POST /refresh
                       │              │
-                ┌─────┴──────┐       │
-                │            │       │
+                ┌─────┴──────┐        │
+                │           │        │
          Tempo passa   Usuario faz
                 │       logout
                 │            │
                 ▼            ▼
-          ┌──────────┐  ┌──────────────┐
+          ┌──────────┐   ┌──────────────┐
           │EXPIRADO  │  │REVOGADO ❌   │
           │❌ (15min)│  │(imediato)    │
-          └──────────┘  └──────────────┘
+          └──────────┘   └──────────────┘
                 │             │
-                └─────┬───────┘
+                └─────┬────────┘
                       │
             Retorna 401 em
           POST /verify ou /refresh
@@ -573,7 +573,7 @@ Opção 3: Token Blacklist
 
 ---
 
-## 📋 Checklist de Implementação
+## Checklist de Implementação
 
 Ao integrar o Auth Service, verificar:
 
@@ -594,7 +594,7 @@ Ao integrar o Auth Service, verificar:
 
 ---
 
-## 🔍 Debugging
+## Debugging
 
 ### Inspecionar JWT
 
