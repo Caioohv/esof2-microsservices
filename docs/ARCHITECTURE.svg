@@ -1,0 +1,223 @@
+<svg viewBox="0 0 1400 1000" xmlns="http://www.w3.org/2000/svg">
+  <!-- Define styles -->
+  <defs>
+    <style>
+      .bg { fill: #f8f9fa; }
+      .title { font-size: 28px; font-weight: bold; fill: #1a1a1a; }
+      .subtitle { font-size: 14px; fill: #666; }
+      .service-title { font-size: 16px; font-weight: bold; fill: #fff; }
+      .service-desc { font-size: 12px; fill: #f0f0f0; }
+      .layer-label { font-size: 18px; font-weight: bold; fill: #2c3e50; }
+      .tech-label { font-size: 11px; fill: #555; font-weight: 600; }
+      .connector { stroke: #3498db; stroke-width: 2; fill: none; }
+      .connector-auth { stroke: #e74c3c; stroke-width: 2; fill: none; stroke-dasharray: 5,5; }
+      .decision-box { fill: #fff3cd; stroke: #ffc107; stroke-width: 2; }
+      .decision-text { font-size: 11px; fill: #333; }
+
+      /* Service boxes */
+      .service-frontend { fill: #9b59b6; }
+      .service-auth { fill: #e74c3c; }
+      .service-user { fill: #3498db; }
+      .service-store { fill: #27ae60; }
+      .service-payment { fill: #f39c12; }
+      .service-infra { fill: #34495e; }
+
+      /* Connector arrows -->
+      .arrow { fill: #3498db; }
+      .arrow-auth { fill: #e74c3c; }
+      .arrow-dashed { stroke-dasharray: 5,5; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1400" height="1000" class="bg"/>
+
+  <!-- Title -->
+  <text x="700" y="40" class="title" text-anchor="middle">High-Ticket Showcase Platform - Architecture Map</text>
+  <text x="700" y="60" class="subtitle" text-anchor="middle">Distributed Microservices System | Node.js | PostgreSQL | Docker</text>
+
+  <!-- Layer 1: Client Layer -->
+  <g id="client-layer">
+    <rect x="50" y="100" width="1300" height="140" fill="none" stroke="#ddd" stroke-width="2" rx="5"/>
+    <text x="70" y="120" class="layer-label">CLIENT LAYER</text>
+
+    <!-- Frontend BFF -->
+    <rect x="100" y="140" width="280" height="80" rx="5" class="service-frontend"/>
+    <text x="240" y="160" class="service-title" text-anchor="middle">Frontend/BFF</text>
+    <text x="240" y="178" class="service-desc" text-anchor="middle" font-size="11">Nuxt 3 + SSR</text>
+    <text x="240" y="192" class="service-desc" text-anchor="middle" font-size="11">Port: 3000</text>
+    <text x="240" y="206" class="service-desc" text-anchor="middle" font-size="10">Route aggregator</text>
+  </g>
+
+  <!-- Arrow down from client -->
+  <path d="M 240 220 L 240 260" class="connector"/>
+  <polygon points="240,270 235,260 245,260" class="arrow"/>
+
+  <!-- Layer 2: API Gateway / Reverse Proxy -->
+  <g id="gateway-layer">
+    <rect x="50" y="260" width="1300" height="100" fill="none" stroke="#ddd" stroke-width="2" rx="5"/>
+    <text x="70" y="280" class="layer-label">REVERSE PROXY LAYER</text>
+
+    <!-- Nginx -->
+    <rect x="350" y="290" width="700" height="60" rx="5" class="service-infra"/>
+    <text x="700" y="315" class="service-title" text-anchor="middle">Nginx Reverse Proxy</text>
+    <text x="700" y="335" class="service-desc" text-anchor="middle">Routes traffic to services | TLS termination</text>
+  </g>
+
+  <!-- Arrows to services -->
+  <path d="M 500 360 L 380 410" class="connector"/>
+  <polygon points="370,415 381,408 385,420" class="arrow"/>
+
+  <path d="M 700 360 L 700 410" class="connector"/>
+  <polygon points="700,420 695,410 705,410" class="arrow"/>
+
+  <path d="M 900 360 L 1020 410" class="connector"/>
+  <polygon points="1030,415 1019,420 1015,408" class="arrow"/>
+
+  <!-- Layer 3: Microservices -->
+  <g id="services-layer">
+    <rect x="50" y="410" width="1300" height="350" fill="none" stroke="#ddd" stroke-width="2" rx="5"/>
+    <text x="70" y="430" class="layer-label">MICROSERVICES LAYER</text>
+
+    <!-- Auth Service -->
+    <rect x="60" y="450" width="240" height="100" rx="5" class="service-auth"/>
+    <text x="180" y="475" class="service-title" text-anchor="middle">Auth Service</text>
+    <text x="180" y="493" class="service-desc" text-anchor="middle" font-size="11">JWT Management</text>
+    <text x="180" y="507" class="service-desc" text-anchor="middle" font-size="10">Login | Refresh | Verify</text>
+    <text x="180" y="521" class="service-desc" text-anchor="middle" font-size="10">Port: 3001</text>
+    <text x="180" y="535" class="tech-label" text-anchor="middle">Express.js | MySQL</text>
+
+    <!-- User Service -->
+    <rect x="330" y="450" width="240" height="100" rx="5" class="service-user"/>
+    <text x="450" y="475" class="service-title" text-anchor="middle">User Service</text>
+    <text x="450" y="493" class="service-desc" text-anchor="middle" font-size="11">Identity Management</text>
+    <text x="450" y="507" class="service-desc" text-anchor="middle" font-size="10">Roles | Permissions</text>
+    <text x="450" y="521" class="service-desc" text-anchor="middle" font-size="10">Port: 3002</text>
+    <text x="450" y="535" class="tech-label" text-anchor="middle">NestJS | PostgreSQL</text>
+
+    <!-- Store Service -->
+    <rect x="600" y="450" width="240" height="100" rx="5" class="service-store"/>
+    <text x="720" y="475" class="service-title" text-anchor="middle">Store Service</text>
+    <text x="720" y="493" class="service-desc" text-anchor="middle" font-size="11">Core Business Logic</text>
+    <text x="720" y="507" class="service-desc" text-anchor="middle" font-size="10">Products | Visits</text>
+    <text x="720" y="521" class="service-desc" text-anchor="middle" font-size="10">Port: 3004</text>
+    <text x="720" y="535" class="tech-label" text-anchor="middle">NestJS | PostgreSQL</text>
+
+    <!-- Payment Service -->
+    <rect x="870" y="450" width="240" height="100" rx="5" class="service-payment"/>
+    <text x="990" y="475" class="service-title" text-anchor="middle">Payment Service</text>
+    <text x="990" y="493" class="service-desc" text-anchor="middle" font-size="11">Subscriptions</text>
+    <text x="990" y="507" class="service-desc" text-anchor="middle" font-size="10">Plans | Checkout</text>
+    <text x="990" y="521" class="service-desc" text-anchor="middle" font-size="10">Port: 3003</text>
+    <text x="990" y="535" class="tech-label" text-anchor="middle">NestJS | PostgreSQL</text>
+
+    <!-- Visit Scheduling Service (planned) -->
+    <rect x="1140" y="450" width="200" height="100" rx="5" fill="#95a5a6"/>
+    <text x="1240" y="475" class="service-title" text-anchor="middle">Visit Scheduler</text>
+    <text x="1240" y="493" class="service-desc" text-anchor="middle" font-size="11">Scheduling Logic</text>
+    <text x="1240" y="507" class="service-desc" text-anchor="middle" font-size="10">(Planned)</text>
+    <text x="1240" y="521" class="service-desc" text-anchor="middle" font-size="10">Port: 3005</text>
+    <text x="1240" y="535" class="tech-label" text-anchor="middle">NestJS | PostgreSQL</text>
+
+    <!-- Inter-service communication -->
+    <!-- Auth validation flows (dashed) -->
+    <path d="M 300 500 L 330 500" class="connector-auth"/>
+    <polygon points="340,500 330,505 330,495" class="arrow-auth"/>
+
+    <path d="M 300 510 L 600 510" class="connector-auth"/>
+    <polygon points="610,510 600,515 600,505" class="arrow-auth"/>
+
+    <path d="M 300 520 L 870 520" class="connector-auth"/>
+    <polygon points="880,520 870,525 870,515" class="arrow-auth"/>
+
+    <!-- Service dependencies -->
+    <path d="M 570 500 L 600 500" class="connector"/>
+    <polygon points="610,500 600,505 600,495" class="arrow"/>
+
+    <text x="585" y="490" class="subtitle" text-anchor="middle" font-size="10">calls</text>
+  </g>
+
+  <!-- Layer 4: Data Layer -->
+  <g id="data-layer">
+    <rect x="50" y="790" width="1300" height="140" fill="none" stroke="#ddd" stroke-width="2" rx="5"/>
+    <text x="70" y="810" class="layer-label">DATA LAYER</text>
+
+    <!-- PostgreSQL -->
+    <rect x="150" y="840" width="280" height="70" rx="5" fill="#336791"/>
+    <text x="290" y="860" class="service-title" text-anchor="middle">PostgreSQL Cluster</text>
+    <text x="290" y="878" class="service-desc" text-anchor="middle" font-size="11">auth_db | users_db</text>
+    <text x="290" y="892" class="service-desc" text-anchor="middle" font-size="11">store_db | payment_db</text>
+
+    <!-- MinIO S3 -->
+    <rect x="560" y="840" width="280" height="70" rx="5" fill="#8b572a"/>
+    <text x="700" y="860" class="service-title" text-anchor="middle">MinIO (S3-compatible)</text>
+    <text x="700" y="878" class="service-desc" text-anchor="middle" font-size="11">Product Media</text>
+    <text x="700" y="892" class="service-desc" text-anchor="middle" font-size="11">Store Logos</text>
+
+    <!-- Redis (optional) -->
+    <rect x="970" y="840" width="280" height="70" rx="5" fill="#dc382d"/>
+    <text x="1110" y="860" class="service-title" text-anchor="middle">Redis (Optional)</text>
+    <text x="1110" y="878" class="service-desc" text-anchor="middle" font-size="11">Session Cache</text>
+    <text x="1110" y="892" class="service-desc" text-anchor="middle" font-size="11">Rate Limiting</text>
+
+    <!-- Arrows from services to data -->
+    <path d="M 180 550 L 290 840" class="connector"/>
+    <path d="M 450 550 L 450 840" class="connector"/>
+    <path d="M 720 550 L 700 840" class="connector"/>
+    <path d="M 990 550 L 1110 840" class="connector"/>
+  </g>
+
+  <!-- Side Panel: Key Decisions -->
+  <g id="decisions">
+    <!-- Panel background -->
+    <rect x="1130" y="100" width="240" height="690" rx="8" fill="#fffacd" stroke="#ffc107" stroke-width="2"/>
+
+    <text x="1250" y="125" class="layer-label" text-anchor="middle" font-size="16">KEY DECISIONS</text>
+
+    <!-- Decision 1 -->
+    <rect x="1145" y="145" width="210" height="80" rx="4" class="decision-box"/>
+    <text x="1155" y="160" class="decision-text" font-weight="bold">1. Microservices</text>
+    <text x="1155" y="175" class="decision-text" font-size="10">Independent services, separate DBs, REST communication over Docker network</text>
+    <text x="1155" y="220" class="decision-text" font-size="9" fill="#666">✓ Scalability</text>
+
+    <!-- Decision 2 -->
+    <rect x="1145" y="235" width="210" height="80" rx="4" class="decision-box"/>
+    <text x="1155" y="250" class="decision-text" font-weight="bold">2. Auth Centralization</text>
+    <text x="1155" y="265" class="decision-text" font-size="10">Auth owns credentials, others validate via /verify endpoint</text>
+    <text x="1155" y="310" class="decision-text" font-size="9" fill="#666">✓ Single source of truth</text>
+
+    <!-- Decision 3 -->
+    <rect x="1145" y="325" width="210" height="80" rx="4" class="decision-box"/>
+    <text x="1155" y="340" class="decision-text" font-weight="bold">3. NestJS Standard</text>
+    <text x="1155" y="355" class="decision-text" font-size="10">Backend services use NestJS for consistency and type-safety</text>
+    <text x="1155" y="400" class="decision-text" font-size="9" fill="#666">✓ DX & Maintainability</text>
+
+    <!-- Decision 4 -->
+    <rect x="1145" y="415" width="210" height="80" rx="4" class="decision-box"/>
+    <text x="1155" y="430" class="decision-text" font-weight="bold">4. DB per Service</text>
+    <text x="1155" y="445" class="decision-text" font-size="10">Each service has own PostgreSQL database for independence</text>
+    <text x="1155" y="490" class="decision-text" font-size="9" fill="#666">✓ Loose coupling</text>
+
+    <!-- Decision 5 -->
+    <rect x="1145" y="505" width="210" height="80" rx="4" class="decision-box"/>
+    <text x="1155" y="520" class="decision-text" font-weight="bold">5. Nuxt for Frontend</text>
+    <text x="1155" y="535" class="decision-text" font-size="10">SSR app + BFF routes proxy to backend services</text>
+    <text x="1155" y="580" class="decision-text" font-size="9" fill="#666">✓ Performance & SEO</text>
+
+    <!-- Decision 6 -->
+    <rect x="1145" y="595" width="210" height="80" rx="4" class="decision-box"/>
+    <text x="1155" y="610" class="decision-text" font-weight="bold">6. S3 for Media</text>
+    <text x="1155" y="625" class="decision-text" font-size="10">MinIO for local dev, cloud S3 for production</text>
+    <text x="1155" y="670" class="decision-text" font-size="9" fill="#666">✓ Scalable storage</text>
+  </g>
+
+  <!-- Legend -->
+  <g id="legend" transform="translate(50, 960)">
+    <text x="0" y="0" class="subtitle" font-weight="bold">COMMUNICATION PATTERNS:</text>
+    <line x1="0" y1="15" x2="30" y2="15" class="connector"/>
+    <text x="40" y="20" class="subtitle" font-size="11">Service-to-Service calls</text>
+
+    <line x1="220" y1="15" x2="250" y2="15" class="connector-auth"/>
+    <text x="260" y="20" class="subtitle" font-size="11">Auth verification calls</text>
+  </g>
+</svg>

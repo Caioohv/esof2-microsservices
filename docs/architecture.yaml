@@ -1,0 +1,548 @@
+---
+project:
+  name: "High-Ticket Showcase Platform"
+  description: "Distributed microservices system for luxury item marketplace (cars, real estate)"
+  version: "1.0"
+  repository: "https://github.com/yourusername/esof2-microsservices"
+
+vision:
+  product: "Premium distributed system serving as a showcase (vitrine) for high-ticket stores"
+  primary_users:
+    - "High-net-worth clients (luxury shoppers)"
+    - "Premium sellers (car dealers, real estate agents)"
+  core_value: "Visit scheduling and product presentation for luxury items"
+
+technology_stack:
+  languages:
+    primary: "JavaScript/TypeScript"
+    runtime: "Node.js"
+    version: "18+"
+
+  frameworks:
+    frontend:
+      name: "Nuxt 3"
+      description: "SSR Vue.js with BFF"
+      version: "3.x"
+      purpose: "Server-side rendering + API aggregation"
+
+    backend:
+      name: "NestJS"
+      description: "Progressive Node.js framework"
+      version: "10.x"
+      purpose: "Type-safe microservices"
+      usage:
+        - "User Service"
+        - "Store Service"
+        - "Payment Service"
+        - "Visit Scheduler (planned)"
+
+    lightweight:
+      name: "Express.js"
+      description: "Lightweight HTTP framework"
+      version: "4.x"
+      purpose: "Auth Service (intentionally simple)"
+
+  databases:
+    postgresql:
+      primary: true
+      version: "14+"
+      purpose: "Primary relational database"
+      per_service:
+        - service: "Auth Service"
+          database: "auth_db"
+          engine: "MySQL" # exception for auth
+        - service: "User Service"
+          database: "users_db"
+        - service: "Store Service"
+          database: "store_db"
+        - service: "Payment Service"
+          database: "payment_db"
+
+    mongodb:
+      primary: false
+      status: "Under evaluation"
+      potential_use: "Logs, audit trails (if needed)"
+
+    redis:
+      primary: false
+      status: "Optional"
+      potential_uses:
+        - "Session caching"
+        - "Rate limiting"
+        - "Pub/Sub (future)"
+
+  storage:
+    s3_compatible: "MinIO (local), AWS S3 (production)"
+    purpose: "Product images, store logos, media storage"
+
+  infrastructure:
+    containerization: "Docker"
+    orchestration: "Docker Compose (dev), Kubernetes/ECS (prod)"
+    reverse_proxy: "Nginx"
+    payment_gateways:
+      - "Stripe"
+      - "MercadoPago"
+      - "Efí Pay"
+      - "AbacatePay"
+
+architecture:
+  pattern: "Microservices"
+  communication: "REST/HTTP over Docker network"
+  deployment: "Containerized microservices"
+
+  layers:
+    - name: "Client Layer"
+      description: "User-facing applications"
+      components:
+        - name: "Web App"
+          type: "Nuxt 3 SPA"
+          port: 3000
+          description: "Premium showcase UI with SSR"
+
+    - name: "API Gateway Layer"
+      description: "Request routing and load balancing"
+      components:
+        - name: "Nginx Reverse Proxy"
+          port: "80, 443"
+          description: "Routes external traffic to microservices"
+          responsibilities:
+            - "TLS termination"
+            - "Load balancing"
+            - "Rate limiting (future)"
+
+    - name: "Microservices Layer"
+      description: "Business logic services"
+      components:
+        - name: "Auth Service"
+          port: 3001
+          framework: "Express.js"
+          database: "MySQL (auth_db)"
+          description: "Central authentication and JWT management"
+          responsibilities:
+            - "User login/logout"
+            - "JWT token generation and validation"
+            - "Credential registration"
+            - "Token refresh"
+          endpoints:
+            - "POST /login"
+            - "POST /refresh"
+            - "POST /verify"
+            - "POST /logout"
+            - "POST /register (internal)"
+          key_decisions:
+            - "Centralized auth - single source of truth"
+            - "All services validate tokens via /verify"
+            - "No secret replication"
+
+        - name: "User Service"
+          port: 3002
+          framework: "NestJS"
+          database: "PostgreSQL (users_db)"
+          orm: "Prisma"
+          description: "Identity management and permissions"
+          responsibilities:
+            - "User profile management"
+            - "Role assignment (lojista, cliente, admin)"
+            - "Permission verification"
+            - "User metadata"
+          endpoints:
+            - "POST /users"
+            - "GET /users/:id"
+            - "PATCH /users/:id"
+            - "POST /permissions/verify"
+          roles:
+            - name: "lojista"
+              description: "Store owner/seller"
+              permissions: ["create_store", "manage_products", "view_visits"]
+            - name: "cliente"
+              description: "Buyer/client"
+              permissions: ["view_stores", "schedule_visit", "view_products"]
+            - name: "admin"
+              description: "Administrator"
+              permissions: ["*"]
+          key_decisions:
+            - "Database isolation - no schema sharing"
+            - "Other services query via API, not direct DB access"
+
+        - name: "Store Service"
+          port: 3004
+          framework: "NestJS"
+          database: "PostgreSQL (store_db)"
+          orm: "Prisma"
+          storage: "MinIO (S3-compatible)"
+          description: "Core business logic for stores, products, and visits"
+          responsibilities:
+            - "Store management (CRUD)"
+            - "Product catalog"
+            - "Product media (images, videos)"
+            - "Visit scheduling"
+            - "Visit status tracking"
+          endpoints:
+            - "POST /stores"
+            - "GET /stores/:id"
+            - "PATCH /stores/:id"
+            - "POST /products"
+            - "GET /products"
+            - "POST /visits"
+            - "GET /visits/:id"
+            - "PATCH /visits/:id"
+          authorization_flow:
+            - "Client sends Bearer token"
+            - "Service calls Auth /verify"
+            - "Service calls User /permissions/verify"
+            - "If authorized, process request"
+          key_decisions:
+            - "Composes Auth + User services for authorization"
+            - "Media stored in S3, not database"
+            - "Visit logic central to business value"
+
+        - name: "Payment Service"
+          port: 3003
+          framework: "NestJS"
+          database: "PostgreSQL (payment_db)"
+          orm: "Prisma"
+          description: "Subscription management and payment processing"
+          responsibilities:
+            - "Subscription plan management"
+            - "Subscription lifecycle (create, renew, cancel)"
+            - "Payment processing"
+            - "Invoice generation"
+            - "Webhook handling"
+          endpoints:
+            - "GET /plans"
+            - "POST /subscriptions"
+            - "GET /subscriptions/:id"
+            - "PATCH /subscriptions/:id"
+            - "POST /checkout"
+            - "POST /webhooks/payment"
+          payment_gateways:
+            - "Stripe"
+            - "MercadoPago"
+            - "Efí Pay"
+            - "AbacatePay"
+          key_decisions:
+            - "Abstracted payment gateway (pluggable)"
+            - "Webhook handlers for payment status updates"
+
+        - name: "Visit Scheduler Service"
+          port: 3005
+          framework: "NestJS (planned)"
+          database: "PostgreSQL (scheduler_db)"
+          status: "Planned for Phase 4"
+          description: "Advanced scheduling logic and notifications"
+          future_responsibilities:
+            - "Smart visit scheduling"
+            - "Conflict detection"
+            - "Notification system"
+            - "Reminder automation"
+
+    - name: "Data Layer"
+      description: "Persistent storage"
+      components:
+        - name: "PostgreSQL Cluster"
+          version: "14+"
+          deployment: "Single container (dev), cluster (prod)"
+          databases:
+            - "auth_db (MySQL exception)"
+            - "users_db"
+            - "store_db"
+            - "payment_db"
+          key_decisions:
+            - "Database per service (loose coupling)"
+            - "No cross-service transactions"
+            - "Eventual consistency model"
+
+        - name: "MinIO (S3-compatible)"
+          deployment: "Local dev, AWS S3 prod"
+          objects:
+            - "Product images"
+            - "Store logos"
+            - "Media assets"
+
+        - name: "Redis (Optional)"
+          status: "Under evaluation"
+          potential_uses:
+            - "Session cache"
+            - "Rate limit counters"
+            - "Pub/Sub (future)"
+
+key_architectural_decisions:
+  - title: "Microservices over Monolith"
+    rationale: "Independent teams, parallel development, granular scaling"
+    tradeoff: "Higher operational complexity, service coordination overhead"
+    status: "DECIDED"
+
+  - title: "Centralized Authentication"
+    description: "Auth Service is single source of truth; others validate via /verify"
+    rationale: "Security, auditability, token revocation"
+    tradeoff: "Extra network hop for validation"
+    status: "DECIDED"
+
+  - title: "Database per Service"
+    description: "Each microservice has its own database"
+    rationale: "Loose coupling, independent scaling, failure isolation"
+    tradeoff: "Eventual consistency, no distributed transactions"
+    status: "DECIDED"
+
+  - title: "REST Communication (MVP)"
+    description: "HTTP/REST for inter-service calls, no message broker"
+    rationale: "Simplicity, synchronous guarantee for MVP"
+    tradeoff: "Cannot handle eventual consistency early"
+    migration_path: "Add message broker (RabbitMQ, Kafka) in Phase 5+"
+    status: "DECIDED"
+
+  - title: "Nuxt 3 Frontend + BFF"
+    description: "SSR app with API routes for backend aggregation"
+    rationale: "SEO benefits, unified state management, simplified API consumption"
+    tradeoff: "Node.js runtime required on frontend"
+    status: "DECIDED"
+
+  - title: "NestJS for Backend Services"
+    description: "Standard framework for all microservices (except Auth)"
+    rationale: "Type safety, consistency, excellent DX, Prisma integration"
+    tradeoff: "Heavier than Express for simple services"
+    status: "DECIDED"
+
+  - title: "Prisma ORM"
+    description: "Type-safe database access layer"
+    rationale: "TypeScript first, automated migrations, type generation"
+    tradeoff: "Vendor lock-in to Prisma (mitigated by SQL exports)"
+    status: "DECIDED"
+
+communication_patterns:
+  - name: "Login Flow"
+    sequence:
+      1. "Client sends POST /login to Nginx"
+      2. "Nginx routes to Auth Service"
+      3. "Auth validates credentials"
+      4. "Auth generates access_token + refresh_token"
+      5. "Client receives tokens, stores locally"
+
+  - name: "Authenticated Request Flow"
+    sequence:
+      1. "Client sends request with Authorization: Bearer <token>"
+      2. "Nginx passes request to target service"
+      3. "Service extracts token from header"
+      4. "Service calls Auth /verify endpoint"
+      5. "Auth Service validates JWT (signature, expiration)"
+      6. "Auth returns { valid: true, user: {...} }"
+      7. "Service checks User /permissions/verify if needed"
+      8. "If authorized, service processes request"
+
+  - name: "New User Registration"
+    sequence:
+      1. "Client submits signup form to Frontend"
+      2. "Frontend calls BFF /api/auth/register"
+      3. "BFF simultaneously calls:"
+      4. "  - User Service: POST /users"
+      5. "  - Auth Service: POST /register"
+      6. "User Service creates user record, returns user_id"
+      7. "Auth Service creates credential entry"
+      8. "User can now login"
+
+data_models:
+  User:
+    fields:
+      - id: UUID
+      - email: string (unique)
+      - role: enum [admin, lojista, cliente]
+      - created_at: timestamp
+      - updated_at: timestamp
+    service: "User Service"
+    database: "users_db"
+
+  Credential:
+    fields:
+      - id: UUID
+      - user_id: UUID
+      - email: string (unique)
+      - password_hash: string
+      - password_salt: string
+    service: "Auth Service"
+    database: "auth_db"
+
+  Store:
+    fields:
+      - id: UUID
+      - name: string
+      - owner_id: UUID (→ User)
+      - description: text
+      - logo_url: string
+      - created_at: timestamp
+    service: "Store Service"
+    database: "store_db"
+
+  Product:
+    fields:
+      - id: UUID
+      - name: string
+      - price: decimal
+      - store_id: UUID (→ Store)
+      - description: text
+      - media_urls: string[]
+      - created_at: timestamp
+    service: "Store Service"
+    database: "store_db"
+
+  Visit:
+    fields:
+      - id: UUID
+      - client_id: UUID (→ User)
+      - product_id: UUID (→ Product)
+      - scheduled_at: datetime
+      - status: enum [pending, confirmed, cancelled]
+      - created_at: timestamp
+    service: "Store Service"
+    database: "store_db"
+
+  PaymentPlan:
+    fields:
+      - id: UUID
+      - name: string
+      - price: decimal
+      - features: string[]
+      - duration_days: integer
+    service: "Payment Service"
+    database: "payment_db"
+
+  Subscription:
+    fields:
+      - id: UUID
+      - lojista_id: UUID (→ User)
+      - plan_id: UUID (→ PaymentPlan)
+      - status: enum [active, expired, cancelled]
+      - expires_at: datetime
+      - created_at: timestamp
+    service: "Payment Service"
+    database: "payment_db"
+
+security:
+  authentication:
+    method: "JWT (HS256)"
+    access_token_ttl: "15 minutes"
+    refresh_token_ttl: "7 days"
+    refresh_token_storage: "SHA256 hash in database"
+
+  password:
+    algorithm: "PBKDF2"
+    iterations: 100000
+    hash_function: "SHA512"
+    salt_length: 16
+
+  secrets_management:
+    jwt_secret: "Environment variable (32+ chars)"
+    jwt_refresh_secret: "Environment variable (32+ chars)"
+    db_passwords: "Environment variable"
+    api_keys: "Environment variable"
+
+  network:
+    tls: "Nginx TLS termination (production)"
+    inter_service: "Plain HTTP over Docker network (internal)"
+    cors: "Per-service configuration"
+    rate_limiting: "Nginx (to implement)"
+
+deployment:
+  development:
+    environment: "Docker Compose"
+    services: "All services in containers"
+    database: "Single PostgreSQL container"
+    storage: "MinIO local container"
+    network: "Docker internal network"
+
+  production:
+    database: "AWS RDS PostgreSQL"
+    storage: "AWS S3"
+    services: "Kubernetes or ECS"
+    load_balancing: "ALB + Auto Scaling"
+    monitoring: "CloudWatch + custom dashboards"
+    backup: "Automated RDS snapshots"
+
+roadmap:
+  phase_1: "Foundation & Infrastructure"
+    status: "In Progress"
+    tasks:
+      - "Docker Compose setup"
+      - "PostgreSQL + MinIO"
+      - "CI/CD pipeline"
+
+  phase_2: "Identity & Access Management"
+    status: "In Progress"
+    tasks:
+      - "Auth Service (JWT, refresh, verify)"
+      - "User Service (profiles, roles, permissions)"
+
+  phase_3: "Store & Products"
+    status: "Planned"
+    tasks:
+      - "Store Service (CRUD)"
+      - "Product Catalog"
+      - "Search and filtering"
+
+  phase_4: "Scheduling & Leads"
+    status: "Planned"
+    tasks:
+      - "Visit Scheduler Service"
+      - "Notifications"
+
+  phase_5: "Monetization"
+    status: "Planned"
+    tasks:
+      - "Payment Service"
+      - "Subscription integration"
+
+  phase_6: "Frontend"
+    status: "Planned"
+    tasks:
+      - "Nuxt 3 premium UI"
+      - "Showcase experience"
+
+metrics:
+  success:
+    - "Seamless service integration"
+    - "Sub-200ms API response times"
+    - "99.9% uptime"
+    - "Premium UI responsiveness"
+
+  monitoring:
+    - "Service latency (per endpoint)"
+    - "Error rates (4xx, 5xx)"
+    - "Database query performance"
+    - "Storage usage"
+    - "API rate limiting effectiveness"
+
+team_structure:
+  frontend:
+    - "Nuxt 3 development"
+    - "BFF API routes"
+    - "UI/UX implementation"
+
+  backend_auth:
+    - "Auth Service maintenance"
+    - "Token management"
+
+  backend_services:
+    - "User Service"
+    - "Store Service"
+    - "Payment Service"
+
+  devops:
+    - "Infrastructure automation"
+    - "Deployment pipelines"
+    - "Monitoring and alerting"
+
+documentation:
+  api:
+    - "Auth Service API Reference"
+    - "User Service API Reference (planned)"
+    - "Store Service API Reference (planned)"
+    - "Payment Service API Reference (planned)"
+
+  architecture:
+    - "ARCHITECTURE.md"
+    - "ARCHITECTURE.svg"
+    - "architecture.yaml (this file)"
+
+  guides:
+    - "Integration guides (per service)"
+    - "Setup and deployment"
+    - "Local development"
