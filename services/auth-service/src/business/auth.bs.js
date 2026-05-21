@@ -1,19 +1,20 @@
 const { hashPassword, generateSalt } = require('../crypto');
 const { issueAccessToken, issueRefreshToken, verifyRefreshToken, verifyAccessToken } = require('../jwt');
 const repo = require('../repositories/auth.rep');
+const { AppError } = require('../errors');
 
 async function login(email, password) {
   const credential = await repo.findCredentialByEmail(email);
-  if (!credential) throw { status: 401, message: 'invalid credentials' };
+  if (!credential) throw new AppError(401, 'invalid credentials');
 
-  const hash = hashPassword(password, credential.password_salt);
-  if (hash !== credential.password_hash) throw { status: 401, message: 'invalid credentials' };
+  const hash = hashPassword(password, credential.passwordHash);
+  if (hash !== credential.passwordHash) throw new AppError(401, 'invalid credentials');
 
-  const payload = { sub: credential.user_id, email: credential.email };
+  const payload = { sub: credential.userId, email: credential.email };
   const accessToken = issueAccessToken(payload);
   const refreshToken = issueRefreshToken(payload);
 
-  await repo.insertRefreshToken(credential.user_id, refreshToken);
+  await repo.insertRefreshToken(credential.userId, refreshToken);
 
   return { access_token: accessToken, refresh_token: refreshToken };
 }
@@ -27,11 +28,11 @@ async function refresh(refreshToken) {
   try {
     payload = verifyRefreshToken(refreshToken);
   } catch {
-    throw { status: 401, message: 'invalid or expired refresh token' };
+    throw new AppError(401, 'invalid or expired refresh token');
   }
 
   const stored = await repo.findActiveRefreshToken(refreshToken);
-  if (!stored) throw { status: 401, message: 'refresh token revoked or expired' };
+  if (!stored) throw new AppError(401, 'refresh token revoked or expired');
 
   return { access_token: issueAccessToken({ sub: payload.sub, email: payload.email }) };
 }
@@ -41,7 +42,7 @@ function verify(token) {
     const payload = verifyAccessToken(token);
     return { valid: true, user: { id: payload.sub, email: payload.email } };
   } catch {
-    throw { status: 401, message: 'invalid or expired token' };
+    throw new AppError(401, 'invalid or expired token');
   }
 }
 
@@ -52,7 +53,7 @@ async function register(userId, email, password) {
   try {
     await repo.insertCredential(userId, email, hash, salt);
   } catch (err) {
-    if (err.code === 'ER_DUP_ENTRY') throw { status: 409, message: 'email already registered' };
+    if (err.code === 'P2002') throw new AppError(409, 'email already registered');
     throw err;
   }
 }

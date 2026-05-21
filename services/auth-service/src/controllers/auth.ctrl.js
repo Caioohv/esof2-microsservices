@@ -1,8 +1,11 @@
 const business = require('../business/auth.bs');
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 const login = async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ error: 'email and password required' });
+  if (!EMAIL_RE.test(email)) return res.status(400).json({ error: 'invalid email format' });
 
   try {
     const result = await business.login(email, password);
@@ -36,13 +39,13 @@ const refresh = async (req, res) => {
   }
 };
 
-const verify = (req, res) => {
+const verify = async (req, res) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader?.split(' ')[1];
   if (!token) return res.status(401).json({ error: 'token required' });
 
   try {
-    const result = business.verify(token);
+    const result = await business.verify(token);
     res.json(result);
   } catch (err) {
     res.status(err.status || 401).json({ valid: false, error: err.message });
@@ -54,6 +57,7 @@ const register = async (req, res) => {
   if (!user_id || !email || !password) {
     return res.status(400).json({ error: 'user_id, email, and password required' });
   }
+  if (!EMAIL_RE.test(email)) return res.status(400).json({ error: 'invalid email format' });
 
   try {
     await business.register(user_id, email, password);
