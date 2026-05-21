@@ -12,6 +12,7 @@ Nós fundamentamos a ideia no fato de que esses tipos de vendas não são feitas
 - Docker
 - Docker Compose
 - Stripe ou MercadoPago ou Efí Pay ou AbacatePay
+- Testing: Vitest ou Jest
 
 ## Microsserviços
 
