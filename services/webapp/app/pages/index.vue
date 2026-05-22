@@ -12,7 +12,7 @@
         </h1>
 
         <p class="hero__sub">
-          Automóveis, imóveis e outros ativos de alto padrão — curados para quem busca o excepcional. A negociação começa aqui, mas se conclui pessoalmente.
+          Descubra automóveis, imóveis e outros ativos de alto padrão — e agende sua visita diretamente com o parceiro. Tudo começa aqui.
         </p>
 
         <div class="hero__actions">
@@ -206,8 +206,8 @@ const steps = [
   },
   {
     number: '03',
-    title: 'Conclua a negociação',
-    desc: 'A negociação final acontece diretamente entre você e o parceiro. Sem intermediários, sem complicações — a Olimpo apenas conecta.',
+    title: 'Agende sua visita',
+    desc: 'Gostou do que viu? Agende sua visita com o parceiro e conheça o ativo pessoalmente. A Olimpo conecta — o restante é entre você e quem entende do produto.',
   },
 ]
 
