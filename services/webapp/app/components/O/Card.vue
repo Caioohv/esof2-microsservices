@@ -20,7 +20,7 @@
       <p v-if="specs" class="o-card__specs text-caption">{{ specs }}</p>
 
       <div class="o-card__price-block">
-        <span class="text-label text-muted">Valor</span>
+        <span class="o-card__price-label">Valor</span>
         <span class="o-card__price">{{ price }}</span>
       </div>
 
@@ -100,8 +100,16 @@ defineEmits<{ detail: []; save: [] }>()
 }
 
 .o-card__specs {
-  color: var(--color-driftwood);
   font-size: var(--text-caption);
+  color: var(--color-driftwood);
+}
+
+.o-card__price-label {
+  font-size: var(--text-label);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-mist);
 }
 
 .o-card__price-block {
