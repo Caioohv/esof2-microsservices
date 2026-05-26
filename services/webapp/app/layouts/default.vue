@@ -16,7 +16,6 @@
         </nav>
 
         <div class="layout__actions">
-          <NuxtLink to="/login" class="layout__login-link">Entrar</NuxtLink>
           <OButton tag="a" href="/login" variant="primary">Acessar plataforma</OButton>
         </div>
 
