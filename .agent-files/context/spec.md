@@ -1,37 +1,53 @@
 # Project Specification - High-Ticket Showcase
 
 ## Tech Stack
-- **Languages**: JavaScript/TypeScript (Node.js)
-- **Frameworks**: 
-    - Frontend/BFF: Nuxt (Recommended) or Next.js
-    - Backend: ElysiaJS, NestJS, or Express (Under evaluation)
-- **Database**: PostgreSQL (Primary), MongoDB (Secondary/Evaluation)
-- **Infrastructure**: Docker, Docker Compose, Nginx (Optional)
-- **Storage**: S3-compatible (MinIO, LocalStack)
+- **Languages**: TypeScript (Node.js)
+- **Frameworks**:
+  - Frontend/BFF: Nuxt 4 + Vue 3
+  - Backend Services: NestJS
+- **Database**: PostgreSQL (primary), MySQL (auth-service legacy — migrate on next refactor)
+- **ORM**: Prisma
+- **Infrastructure**: Docker, Docker Compose, Nginx
+- **Storage**: S3-compatible (MinIO)
 - **Payments**: Stripe, MercadoPago, Efí Pay, or AbacatePay
 
 ## Core Architecture
-- **Pattern**: Microservices
-- **Entry Point**: Nginx reverse proxy routes all external traffic to the appropriate service.
-- **Inter-Service Communication**: REST/HTTP over internal Docker network. Auth service exposes `/verify` consumed by other services to validate JWTs. No message broker in MVP scope.
-- **Services**:
-    - **Auth** (port 3001): Authentication and Authorization (Login, Logout, Token verification)
-    - **Users** (port 3002): Identity management and permissions (Roles: Lojista, Cliente)
-    - **Payment** (port 3003): Subscription plans and checkout flows for Lojistas
-    - **Store** (port 3004): Core business logic for stores, products, and visit scheduling
-    - **BFF/Frontend** (port 3000): Nuxt 3 app — SSR frontend + server routes as BFF proxy to backend services.
+- **Pattern**: Microservices with database-per-service isolation
+- **Entry Point**: Nginx reverse proxy — routes all external traffic:
+  - `/auth/*` → auth-service (3001)
+  - `/users/*` → user-service (3002)
+  - `/payment/*` → payment-service (3003)
+  - `/store/*` → store-service (3004)
+  - `/*` → webapp/BFF (3000)
+- **Inter-Service Communication**: REST/HTTP over internal Docker network. No message broker in MVP.
+- **Auth Flow**: Auth service owns credential validation and JWT issuance. All other services call `POST /auth/verify` to validate tokens — no shared JWT secret propagated to other services.
+- **Role Enforcement**: Business-layer only, via user-service `POST /permissions/verify` call. BFF enforces nothing.
 
-## Key Decisions
-- **ORM**: Prisma (preferred for migrations, type-safety, and DX over TypeORM).
-- **Framework**: NestJS for all backend services.
-- **DB Isolation**: One PostgreSQL container, separate databases per service (`auth_db`, `users_db`, `store_db`, `payment_db`).
-- **Auth Flow**: Auth service owns credential validation and JWT issuance. Other services call `POST /verify` on auth-service to validate tokens — no shared secret propagation.
-- **Role Enforcement**: Store service calls user-service `/permissions/verify` to check Lojista role. BFF does not enforce business rules.
+## Services
+
+| Service | Port | Status | Framework | DB |
+|---------|------|--------|-----------|-----|
+| webapp (BFF) | 3000 | In Progress | Nuxt 4 | — |
+| auth-service | 3001 | Complete | Express + Prisma | MySQL |
+| user-service | 3002 | Pending | NestJS + Prisma | PostgreSQL |
+| payment-service | 3003 | Pending | NestJS + Prisma | PostgreSQL |
+| store-service | 3004 | Pending | NestJS + Prisma | PostgreSQL |
+
+## Key Decisions (Locked)
+- **ORM**: Prisma — type-safe migrations, superior DX over TypeORM.
+- **Backend Framework**: NestJS for all new backend services — DI, module system, consistency.
+- **DB Strategy**: One PostgreSQL container, isolated databases per service (`users_db`, `store_db`, `payment_db`). Auth uses its own MySQL container (legacy).
+- **Auth**: No shared JWT secret. All verification goes through auth-service `/verify` endpoint.
+- **Role Check**: user-service HTTP call from business layer, not BFF.
 
 ## Data Models & Entities
-- **User**: ID, Email, PasswordHash, Role (Enum: admin | lojista | cliente), CreatedAt.
-- **Store**: ID, Name, OwnerID (→ User), Description, LogoURL, CreatedAt.
-- **Product**: ID, Name, Price, StoreID (→ Store), MediaURLs (string[]), CreatedAt.
-- **PaymentPlan**: ID, Name, Price, Features (string[]), DurationDays.
-- **Subscription**: ID, LojstaID (→ User), PlanID (→ PaymentPlan), Status, ExpiresAt.
-- **Visit**: ID, ClientID (→ User), ProductID (→ Product), ScheduledAt, Status (Enum: pending | confirmed | cancelled).
+- **User**: id, email, password_hash, created_at, updated_at
+- **Store**: id, name, owner_id (→ User), description, logo_url, created_at
+- **Product**: id, name, price, store_id (→ Store), media_urls (string[]), created_at
+- **PaymentPlan**: id, name, price, features (string[]), duration_days
+- **Subscription**: id, lojista_id (→ User), plan_id (→ PaymentPlan), status, expires_at
+- **Visit**: id, client_id (→ User), product_id (→ Product), scheduled_at, status (pending | confirmed | cancelled)
+- **Permission**: id, scope (string), description
+- **Role**: id, name, permissions (M2M with Permission)
+- **UserStoreRole**: id, user_id, store_id, role_id, additional_permissions (JSON)
+- **Invitation**: id, store_id, role_id, email, additional_permissions, token (unique), expires_at, used_at
