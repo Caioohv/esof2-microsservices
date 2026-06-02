@@ -24,7 +24,8 @@ Marketplace curado de itens high-ticket (imóveis, carros, embarcações, joias,
 **Goal**: Stack completo de identidade — autenticação JWT e gerenciamento de permissões por loja.
 **Key Components**:
 - ✅ **Auth Service (3001)**: JWT, refresh tokens, PBKDF2, `/verify` para inter-service auth
-- ⬜ **User Service (3002)**: Perfis de usuário, roles (Lojista/Cliente/Admin), permissões granulares, `UserStoreRole`, sistema de convites
+- 🟡 **User Service (3002) — MVP**: CRUD de usuário (`/register`, `/me`, `/users/:id`) e check de permissão por tipo (`/permissions/verify`). `/register` orquestra a criação de credenciais no auth-service com rollback (saga). Feito em Express (espelha o auth-service) em vez de NestJS.
+  - ⬜ **Pendente (próxima task)**: roles/permissões granulares, `UserStoreRole`, sistema de convites — depende do store-service
 - ⬜ **UserProfile**: Questionário opcional de perfil (estilo de vida, família, preferências) para recomendações
 
 **Dependencies**: Phase 1 complete.

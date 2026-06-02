@@ -160,7 +160,7 @@ Dúvidas ou problemas?
 
 ## Próximos Serviços a Documentar
 
-- [ ] User Service
+- [x] User Service — [API Reference](./user/API.md)
 - [ ] Store Service
 - [ ] Payment Service
 - [ ] Visit Scheduling Service

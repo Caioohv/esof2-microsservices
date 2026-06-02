@@ -1,5 +1,25 @@
 # Task 3: User Service Bootstrap
 
+> **Status: MVP entregue** (`feat/user-service`). Entregue um subconjunto focado em
+> desbloquear o roadmap; o restante virou uma task futura (ver abaixo).
+>
+> **Entregue:**
+> - Serviço `services/user-service` em **Express** (padrão `routes→controller→business→repository`,
+>   espelhando o auth-service **exatamente**), **não NestJS** — decisão de consistência com o
+>   único serviço de referência pronto. Postgres + Prisma 7.
+> - `POST /register` — cria usuário e orquestra `auth-service/register` com rollback (saga).
+> - `GET /me` (valida token via `auth-service/verify`), `GET /users/:id`, `POST /permissions/verify`
+>   (modelo MVP por tipo LOJISTA/CLIENTE).
+> - 12 testes unitários (`node:test`), Dockerfile no mesmo estilo do auth, Postgres no docker-compose.
+>
+> **Adiado para task futura (depende do store-service):** permissões granulares por escopo,
+> `UserStoreRole` multi-loja, sistema de convites com token, decorator `@RequirePermission`.
+>
+> **Nota técnica (pendência conhecida):** sob Prisma 7, `new PrismaClient()` sem args quebra na
+> construção (engine `client` exige driver adapter). Isso afeta **auth e user igualmente** —
+> verificado bootando o auth-service. Os testes passam porque mockam o Prisma. A correção
+> (adicionar driver adapter) deve ser feita de forma uniforme nos dois serviços, fora desta task.
+
 **Goal**: Initialize the User microservice to handle user profiles, registrations, and roles (Lojista/Cliente).
 
 **Roadmap Phase**: Phase 2: Identity & Access Management (IAM)

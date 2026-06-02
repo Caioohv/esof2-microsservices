@@ -35,7 +35,7 @@ Diferencial: discovery editorial curado + recomendações baseadas em perfil de 
 |---------|------|--------|-----------|-----|
 | webapp (BFF) | 3000 | In Progress | Nuxt 4 | — |
 | auth-service | 3001 | Complete | Express + Prisma | MySQL |
-| user-service | 3002 | Pending | NestJS + Prisma | PostgreSQL |
+| user-service | 3002 | MVP Complete | Express + Prisma | PostgreSQL |
 | payment-service | 3003 | Pending | NestJS + Prisma | PostgreSQL |
 | store-service | 3004 | Pending | NestJS + Prisma | PostgreSQL |
 
