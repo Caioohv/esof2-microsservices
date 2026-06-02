@@ -1,15 +1,10 @@
-const db = require('../config/db')
+const storeService = require('../services/storeService')
 
 exports.createStore = async (req, res) => {
   try {
-    const { name, description, category } = req.body
+    const store = await storeService.createStore(req.body)
 
-    const result = await db.query(
-      'INSERT INTO stores (name, description, category) VALUES ($1, $2, $3) RETURNING *',
-      [name, description, category]
-    )
-
-    res.status(201).json(result.rows[0])
+    res.status(201).json(store)
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
@@ -17,11 +12,9 @@ exports.createStore = async (req, res) => {
 
 exports.getStores = async (req, res) => {
   try {
-    const result = await db.query(
-      'SELECT * FROM stores ORDER BY id DESC'
-    )
+    const stores = await storeService.getStores()
 
-    res.json(result.rows)
+    res.json(stores)
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
@@ -29,20 +22,15 @@ exports.getStores = async (req, res) => {
 
 exports.getStoreById = async (req, res) => {
   try {
-    const { id } = req.params
+    const store = await storeService.getStoreById(req.params.id)
 
-    const result = await db.query(
-      'SELECT * FROM stores WHERE id = $1',
-      [id]
-    )
-
-    if (result.rows.length === 0) {
+    if (!store) {
       return res.status(404).json({
         message: 'Loja não encontrada'
       })
     }
 
-    res.json(result.rows[0])
+    res.json(store)
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
@@ -50,20 +38,12 @@ exports.getStoreById = async (req, res) => {
 
 exports.updateStore = async (req, res) => {
   try {
-    const { id } = req.params
-    const { name, description, category } = req.body
-
-    const result = await db.query(
-      `UPDATE stores
-       SET name = $1,
-           description = $2,
-           category = $3
-       WHERE id = $4
-       RETURNING *`,
-      [name, description, category, id]
+    const store = await storeService.updateStore(
+      req.params.id,
+      req.body
     )
 
-    res.json(result.rows[0])
+    res.json(store)
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
@@ -71,16 +51,9 @@ exports.updateStore = async (req, res) => {
 
 exports.deleteStore = async (req, res) => {
   try {
-    const { id } = req.params
+    await storeService.deleteStore(req.params.id)
 
-    await db.query(
-      'DELETE FROM stores WHERE id = $1',
-      [id]
-    )
-
-    res.json({
-      message: 'Loja deletada com sucesso'
-    })
+    return res.status(204).send()
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
