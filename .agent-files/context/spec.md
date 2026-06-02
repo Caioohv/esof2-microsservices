@@ -1,4 +1,10 @@
-# Project Specification - High-Ticket Showcase
+# Project Specification - High-Ticket Marketplace
+
+## Product Vision
+
+Marketplace curado de itens high-ticket (imóveis, carros, embarcações, joias, arte). Lojas entram por aprovação; o cliente navega por produtos de múltiplas lojas ou acessa a página de uma loja específica. A venda não acontece online — o marketplace gera o lead e facilita o agendamento de visita presencial.
+
+Diferencial: discovery editorial curado + recomendações baseadas em perfil de estilo de vida do cliente.
 
 ## Tech Stack
 - **Languages**: TypeScript (Node.js)
@@ -41,9 +47,11 @@
 - **Role Check**: user-service HTTP call from business layer, not BFF.
 
 ## Data Models & Entities
+
+### Existentes
 - **User**: id, email, password_hash, created_at, updated_at
 - **Store**: id, name, owner_id (→ User), description, logo_url, created_at
-- **Product**: id, name, price, store_id (→ Store), media_urls (string[]), created_at
+- **Product**: id, name, price, category, store_id (→ Store), media_urls (string[]), created_at
 - **PaymentPlan**: id, name, price, features (string[]), duration_days
 - **Subscription**: id, lojista_id (→ User), plan_id (→ PaymentPlan), status, expires_at
 - **Visit**: id, client_id (→ User), product_id (→ Product), scheduled_at, status (pending | confirmed | cancelled)
@@ -51,3 +59,22 @@
 - **Role**: id, name, permissions (M2M with Permission)
 - **UserStoreRole**: id, user_id, store_id, role_id, additional_permissions (JSON)
 - **Invitation**: id, store_id, role_id, email, additional_permissions, token (unique), expires_at, used_at
+
+### Novos (Marketplace)
+- **UserProfile**: id, user_id (→ User), has_children (bool), num_children (int), marital_status (enum: single | married | divorced | other), income_range (enum), lifestyle_tags (string[]), preferences (JSON), created_at, updated_at
+- **Category**: id, name, slug — verticais fechadas do marketplace (imóveis, carros, embarcações, joias, arte)
+
+## Marketplace — Endpoints Novos
+
+### user-service
+- `POST /users/:id/profile` — salvar perfil do questionário (opcional)
+- `GET /users/:id/profile` — obter perfil
+
+### store-service
+- `GET /products` — busca cross-store com filtros (categoria, preço, localização, texto)
+- `GET /products/recommended` — produtos recomendados com base no perfil do usuário (chama user-service para obter perfil, aplica filtros)
+- `GET /stores` — listar lojas aprovadas (discovery)
+- `GET /categories` — listar categorias disponíveis
+
+## Futuras Melhorias (fora do escopo atual)
+- **Loja Exclusiva**: tier de assinatura premium — loja isolada do marketplace, com URL própria (`/loja/nome`) e experiência de site individual. Implementável como flag no `PaymentPlan` sem mudança arquitetural.
