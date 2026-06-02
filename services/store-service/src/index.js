@@ -1,9 +1,25 @@
-require('dotenv').config()
+const express = require('express');
+const cors = require('cors');
 
-const app = require('./app')
+const storeRoutes = require('./routes/store');
+const productRoutes = require('./routes/product');
+const logger = require('./middlewares/logger');
 
-const PORT = process.env.PORT || 3003
+const app = express();
 
-app.listen(PORT, () => {
-  console.log(`Store service rodando na porta ${PORT}`)
-})
+app.use(cors());
+app.use(express.json());
+app.use(logger);
+
+app.use('/store', storeRoutes);
+app.use('/store', productRoutes);
+
+app.use((err, req, res, _next) => {
+  console.error(err);
+  res.status(500).json({ error: 'internal server error' });
+});
+
+const PORT = process.env.PORT || 3004;
+app.listen(PORT, () => console.log(`store-service running on port ${PORT}`));
+
+module.exports = app;
