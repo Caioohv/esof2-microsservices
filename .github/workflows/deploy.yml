@@ -73,6 +73,7 @@ jobs:
     name: Deploy na VPS
     needs: build-and-push
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - uses: actions/checkout@v4
 
