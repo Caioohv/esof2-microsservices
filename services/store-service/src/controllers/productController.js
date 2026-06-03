@@ -1,19 +1,13 @@
-const db = require('../config/db')
+const productService = require('../services/productService')
 
 exports.createProduct = async (req, res) => {
   try {
-    const { id } = req.params
-    const { name, description, price } = req.body
-
-    const result = await db.query(
-      `INSERT INTO products
-      (store_id, name, description, price)
-      VALUES ($1, $2, $3, $4)
-      RETURNING *`,
-      [id, name, description, price]
+    const product = await productService.createProduct(
+      req.params.id,
+      req.body
     )
 
-    res.status(201).json(result.rows[0])
+    res.status(201).json(product)
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
@@ -21,14 +15,11 @@ exports.createProduct = async (req, res) => {
 
 exports.getProducts = async (req, res) => {
   try {
-    const { id } = req.params
-
-    const result = await db.query(
-      'SELECT * FROM products WHERE store_id = $1',
-      [id]
+    const products = await productService.getProducts(
+      req.params.id
     )
 
-    res.json(result.rows)
+    res.json(products)
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
@@ -36,14 +27,12 @@ exports.getProducts = async (req, res) => {
 
 exports.getProductById = async (req, res) => {
   try {
-    const { id, productId } = req.params
-
-    const result = await db.query(
-      'SELECT * FROM products WHERE store_id = $1 AND id = $2',
-      [id, productId]
+    const product = await productService.getProductById(
+      req.params.id,
+      req.params.productId
     )
 
-    res.json(result.rows[0])
+    res.json(product)
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
@@ -51,20 +40,13 @@ exports.getProductById = async (req, res) => {
 
 exports.updateProduct = async (req, res) => {
   try {
-    const { id, productId } = req.params
-    const { name, description, price } = req.body
-
-    const result = await db.query(
-      `UPDATE products
-       SET name = $1,
-           description = $2,
-           price = $3
-       WHERE store_id = $4 AND id = $5
-       RETURNING *`,
-      [name, description, price, id, productId]
+    const product = await productService.updateProduct(
+      req.params.id,
+      req.params.productId,
+      req.body
     )
 
-    res.json(result.rows[0])
+    res.json(product)
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
@@ -72,16 +54,12 @@ exports.updateProduct = async (req, res) => {
 
 exports.deleteProduct = async (req, res) => {
   try {
-    const { id, productId } = req.params
-
-    await db.query(
-      'DELETE FROM products WHERE store_id = $1 AND id = $2',
-      [id, productId]
+    await productService.deleteProduct(
+      req.params.id,
+      req.params.productId
     )
 
-    res.json({
-      message: 'Produto removido com sucesso'
-    })
+    return res.status(204).send()
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
