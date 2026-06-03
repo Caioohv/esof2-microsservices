@@ -33,15 +33,15 @@ Se o Caddy já está rodando (`infra/proxy`), a rede já existe.
 Crie um Personal Access Token (PAT) no GitHub com escopo `read:packages` (veja [SECRETS.md](SECRETS.md)).
 
 ```bash
-echo "SEU_PAT" | docker login ghcr.io -u SEU_USUARIO --password-stdin
+echo "SEU_GHCR_TOKEN" | docker login ghcr.io -u SEU_USUARIO --password-stdin
 ```
 
 ## 5. Primeiro deploy manual
 
 ```bash
 cd /opt/esof2
-GHCR_OWNER=SEU_USUARIO IMAGE_TAG=latest docker compose -f docker-compose.prod.yml pull
-GHCR_OWNER=SEU_USUARIO IMAGE_TAG=latest docker compose -f docker-compose.prod.yml up -d
+GHCR_OWNER=caioohv IMAGE_TAG=latest docker compose -f docker-compose.prod.yml pull
+GHCR_OWNER=caioohv IMAGE_TAG=latest docker compose -f docker-compose.prod.yml up -d
 ```
 
 Verifique se os containers subiram:
@@ -66,6 +66,8 @@ cat ~/.ssh/deploy_esof2.pub >> ~/.ssh/authorized_keys
 ```
 
 A chave privada (`~/.ssh/deploy_esof2`) vai para o secret `VPS_SSH_KEY` no GitHub.
+
+> A VPS usa porta SSH **22333** — configure o secret `VPS_SSH_PORT=22333` no repositório (veja [SECRETS.md](SECRETS.md)).
 
 ## Atualização manual (bypass do CI)
 

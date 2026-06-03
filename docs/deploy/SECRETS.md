@@ -6,13 +6,14 @@ Configure em **Settings → Secrets and variables → Actions** do repositório.
 |---|---|---|
 | `VPS_HOST` | IP ou hostname da VPS | Painel do provedor |
 | `VPS_USER` | Usuário SSH (ex: `root`, `ubuntu`) | Painel do provedor |
+| `VPS_SSH_PORT` | Porta SSH da VPS (padrão 22, aqui **22333**) | Painel do provedor |
 | `VPS_SSH_KEY` | Chave privada SSH para o deploy | `cat ~/.ssh/deploy_esof2` (veja VPS.md passo 7) |
 | `VPS_DEPLOY_PATH` | Caminho do repo na VPS (ex: `/opt/esof2`) | Onde você clonou o repo |
 | `GHCR_TOKEN` | PAT com escopo `read:packages` | GitHub → Settings → Developer settings → Personal access tokens |
 
 ## Criar o GHCR_TOKEN (PAT)
 
-1. GitHub → **Settings** → **Developer settings** → **Personal access tokens** → **Tokens (classic)**
+1. GitHub → **Settings** → **Developer settings** → **Personal access tokens** → **Tokens (classic)** 
 2. **Generate new token (classic)**
 3. Escopo mínimo: `read:packages`
 4. Copie e salve como secret `GHCR_TOKEN`
