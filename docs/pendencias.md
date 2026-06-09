@@ -5,7 +5,7 @@
 5. Definir Pipelines do Github Actions, Testes Unitários e de integração
 6. Configurar VPS para Ambiente produtivo e de testes
 7. Configurar testes regressivos, testes de carga, etc.
-8. Implementar user-service (perfis, roles, questionário de perfil) >> Tentanto implementar o user service >> Mari
+8. Implementar user-service (perfis, roles, questionário de perfil) >> EM ANDAMENTO! Tentanto implementar o user service >> 
 9. Implementar store-service (lojas, produtos, categorias, busca cross-store, recomendações)
 10. Implementar payment-service (planos de assinatura para lojistas)
 11. Implementar frontend marketplace (discovery editorial, busca, página de loja, agendamento)
