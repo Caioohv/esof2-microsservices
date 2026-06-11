@@ -1,10 +1,11 @@
 const crypto = require('crypto');
 const prisma = require('../lib/prisma');
 
-async function insertStore({ name, description, category }) {
+async function insertStore({ ownerId, name, description, category }) {
   return prisma.store.create({
     data: {
       id: crypto.randomUUID(),
+      ownerId,
       name,
       description,
       category,
@@ -12,8 +13,11 @@ async function insertStore({ name, description, category }) {
   });
 }
 
-async function findStores() {
-  return prisma.store.findMany({ orderBy: { createdAt: 'desc' } });
+async function findStores({ ownerId } = {}) {
+  return prisma.store.findMany({
+    where: ownerId ? { ownerId } : undefined,
+    orderBy: { createdAt: 'desc' },
+  });
 }
 
 async function findStoreById(id) {

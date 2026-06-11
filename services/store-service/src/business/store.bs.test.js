@@ -31,14 +31,21 @@ beforeEach(() => {
 test('createStore: cria e retorna a loja', async () => {
   repMock.insertStore.mock.mockImplementation(async (data) => ({ id: 's1', ...data }));
 
-  const result = await bs.createStore({ name: 'Loja A', description: 'desc', category: 'cars' });
+  const result = await bs.createStore({ ownerId: 'u1', name: 'Loja A', description: 'desc', category: 'cars' });
 
-  assert.deepEqual(result, { id: 's1', name: 'Loja A', description: 'desc', category: 'cars' });
+  assert.equal(result.id, 's1');
+  assert.equal(result.ownerId, 'u1');
+  assert.equal(result.name, 'Loja A');
   assert.equal(repMock.insertStore.mock.calls.length, 1);
 });
 
+test('createStore: lança 400 quando owner_id está ausente', async () => {
+  await assert.rejects(() => bs.createStore({ name: 'Loja A' }), { status: 400 });
+  assert.equal(repMock.insertStore.mock.calls.length, 0);
+});
+
 test('createStore: lança 400 quando name está ausente', async () => {
-  await assert.rejects(() => bs.createStore({ description: 'x' }), { status: 400 });
+  await assert.rejects(() => bs.createStore({ ownerId: 'u1', description: 'x' }), { status: 400 });
   assert.equal(repMock.insertStore.mock.calls.length, 0);
 });
 

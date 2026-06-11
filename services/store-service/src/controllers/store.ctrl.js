@@ -1,8 +1,11 @@
 const business = require('../business/store.bs');
 
 const create = async (req, res) => {
+  const { owner_id, name, description, category } = req.body;
+  if (!owner_id) return res.status(400).json({ error: 'owner_id required' });
+
   try {
-    const store = await business.createStore(req.body);
+    const store = await business.createStore({ ownerId: owner_id, name, description, category });
     res.status(201).json(store);
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
@@ -11,7 +14,8 @@ const create = async (req, res) => {
 
 const list = async (req, res) => {
   try {
-    res.json(await business.listStores());
+    const { owner_id } = req.query;
+    res.json(await business.listStores({ ownerId: owner_id }));
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
   }

@@ -1,13 +1,14 @@
 const repo = require('../repositories/store.rep');
 const { AppError } = require('../errors');
 
-async function createStore({ name, description, category }) {
+async function createStore({ ownerId, name, description, category }) {
+  if (!ownerId) throw new AppError(400, 'owner_id is required');
   if (!name) throw new AppError(400, 'name is required');
-  return repo.insertStore({ name, description, category });
+  return repo.insertStore({ ownerId, name, description, category });
 }
 
-async function listStores() {
-  return repo.findStores();
+async function listStores({ ownerId } = {}) {
+  return repo.findStores({ ownerId });
 }
 
 async function getStore(id) {
