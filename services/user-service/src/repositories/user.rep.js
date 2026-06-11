@@ -1,10 +1,10 @@
-const findServiceInfo = () => {
+function findServiceInfo() {
   return {
     repository: 'user-repository',
-    database: 'not-connected-yet'
+    database: 'not-connected-yet',
   };
-};
+}
 
 module.exports = {
-  findServiceInfo
+  findServiceInfo,
 };
