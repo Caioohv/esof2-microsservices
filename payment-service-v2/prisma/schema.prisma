@@ -1,0 +1,51 @@
+// This is your Prisma schema file.
+// Learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Plan {
+  id             String   @id @default(uuid())
+  name           String   @db.VarChar(100)
+  price          Decimal  @db.Decimal(10, 2)
+  features       Json
+  duration_days  Int
+  stripe_price_id String? @db.VarChar(100)
+  active         Boolean  @default(true)
+  created_at     DateTime @default(now())
+
+  subscriptions Subscription[]
+
+  @@map("plans")
+}
+
+model Subscription {
+  id                     String             @id @default(uuid())
+  lojista_id             String             @db.VarChar(36)
+  plan_id                String
+  status                 SubscriptionStatus @default(pending)
+  stripe_session_id      String?            @db.VarChar(255)
+  stripe_subscription_id String?            @db.VarChar(255)
+  expires_at             DateTime?
+  created_at             DateTime           @default(now())
+  updated_at             DateTime           @updatedAt
+
+  plan Plan @relation(fields: [plan_id], references: [id])
+
+  @@index([lojista_id])
+  @@index([status])
+  @@map("subscriptions")
+}
+
+enum SubscriptionStatus {
+  active
+  inactive
+  cancelled
+  pending
+}
