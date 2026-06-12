@@ -8,6 +8,7 @@ const repMock = {
   deleteRefreshToken: mock.fn(),
   findActiveRefreshToken: mock.fn(),
   insertCredential: mock.fn(),
+  deleteCredentialByUserId: mock.fn(async () => {}),
 };
 
 const jwtMock = {
@@ -22,13 +23,18 @@ const cryptoMock = {
   hashPassword: mock.fn(() => 'hashed'),
 };
 
+const userClientMock = {
+  createUser: mock.fn(async () => ({ id: 'u1' })),
+};
+
 // injeta mocks antes de carregar o módulo
 const Module = require('node:module');
 const originalLoad = Module._load;
 Module._load = function (request, parent, isMain) {
   if (request.endsWith('repositories/auth.rep')) return repMock;
+  if (request.endsWith('clients/user.client')) return userClientMock;
   if (request.endsWith('jwt')) return jwtMock;
-  if (request.endsWith('crypto')) return cryptoMock;
+  if (request.endsWith('/crypto')) return cryptoMock; // só o módulo local ../crypto, não o builtin
   return originalLoad.apply(this, arguments);
 };
 
@@ -41,6 +47,8 @@ beforeEach(() => {
   for (const fn of Object.values(repMock)) fn.mock?.resetCalls?.();
   for (const fn of Object.values(jwtMock)) fn.mock?.resetCalls?.();
   for (const fn of Object.values(cryptoMock)) fn.mock?.resetCalls?.();
+  userClientMock.createUser.mock.resetCalls();
+  userClientMock.createUser.mock.mockImplementation(async () => ({ id: 'u1' }));
 });
 
 // --- login ---
@@ -129,12 +137,26 @@ test('verify: lança 401 quando token é inválido', () => {
 
 // --- register ---
 
-test('register: insere credencial com sucesso', async () => {
+test('register: cria credencial e usuário, retorna user_id', async () => {
   repMock.insertCredential.mock.mockImplementation(async () => {});
 
-  await assert.doesNotReject(() => bs.register('u1', 'a@b.com', 'senha'));
+  const result = await bs.register('a@b.com', 'senha');
 
   assert.equal(repMock.insertCredential.mock.calls.length, 1);
+  assert.equal(userClientMock.createUser.mock.calls.length, 1);
+  assert.equal(result.email, 'a@b.com');
+  assert.equal(result.role, 'CLIENTE');
+  assert.ok(result.user_id);
+});
+
+test('register: usa a role informada', async () => {
+  repMock.insertCredential.mock.mockImplementation(async () => {});
+
+  const result = await bs.register('lojista@b.com', 'senha', 'LOJISTA');
+
+  assert.equal(result.role, 'LOJISTA');
+  const [arg] = userClientMock.createUser.mock.calls[0].arguments;
+  assert.equal(arg.role, 'LOJISTA');
 });
 
 test('register: lança 409 quando email já existe (P2002)', async () => {
@@ -142,5 +164,18 @@ test('register: lança 409 quando email já existe (P2002)', async () => {
   err.code = 'P2002';
   repMock.insertCredential.mock.mockImplementation(async () => { throw err; });
 
-  await assert.rejects(() => bs.register('u1', 'dup@b.com', 'senha'), { status: 409 });
+  await assert.rejects(() => bs.register('dup@b.com', 'senha'), { status: 409 });
+  assert.equal(userClientMock.createUser.mock.calls.length, 0);
+});
+
+test('register: faz rollback da credencial se o user-service falhar', async () => {
+  repMock.insertCredential.mock.mockImplementation(async () => {});
+  userClientMock.createUser.mock.mockImplementation(async () => {
+    const e = new Error('user-service unreachable');
+    e.status = 502;
+    throw e;
+  });
+
+  await assert.rejects(() => bs.register('a@b.com', 'senha'), { status: 502 });
+  assert.equal(repMock.deleteCredentialByUserId.mock.calls.length, 1);
 });

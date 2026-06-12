@@ -52,16 +52,21 @@ const verify = async (req, res) => {
   }
 };
 
+const VALID_ROLES = ['ADMIN', 'LOJISTA', 'CLIENTE'];
+
 const register = async (req, res) => {
-  const { user_id, email, password } = req.body;
-  if (!user_id || !email || !password) {
-    return res.status(400).json({ error: 'user_id, email, and password required' });
+  const { email, password, role } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ error: 'email and password required' });
   }
   if (!EMAIL_RE.test(email)) return res.status(400).json({ error: 'invalid email format' });
+  if (role && !VALID_ROLES.includes(role)) {
+    return res.status(400).json({ error: 'invalid role' });
+  }
 
   try {
-    await business.register(user_id, email, password);
-    res.status(201).json({ message: 'credentials created' });
+    const result = await business.register(email, password, role);
+    res.status(201).json({ message: 'account created', ...result });
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
   }
