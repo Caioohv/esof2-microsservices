@@ -6,6 +6,7 @@ services:
       POSTGRES_DB: olimpo
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql
     ports:
       - "5432:5432"
     healthcheck:
@@ -19,9 +20,11 @@ services:
     ports:
       - "3001:3001"
     environment:
-      DATABASE_URL: postgresql://postgres:${DB_ROOT_PASSWORD:-secret}@postgres:5432/olimpo
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      DATABASE_URL: postgresql://postgres:${DB_ROOT_PASSWORD:-secret}@postgres:5432/auth_db
+      JWT_SECRET: ${JWT_SECRET:-dev_jwt_secret}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-dev_jwt_refresh_secret}
+      USER_SERVICE_URL: http://user-service:3002
+      CORS_ORIGIN: "*"
       PORT: 3001
     depends_on:
       postgres:
@@ -32,7 +35,7 @@ services:
     ports:
       - "3002:3002"
     environment:
-      DATABASE_URL: postgresql://postgres:${DB_ROOT_PASSWORD:-secret}@postgres:5432/olimpo
+      DATABASE_URL: postgresql://postgres:${DB_ROOT_PASSWORD:-secret}@postgres:5432/user_db
       PORT: 3002
     depends_on:
       postgres:
@@ -43,11 +46,21 @@ services:
     ports:
       - "3004:3004"
     environment:
-      DATABASE_URL: postgresql://postgres:${DB_ROOT_PASSWORD:-secret}@postgres:5432/olimpo
+      DATABASE_URL: postgresql://postgres:${DB_ROOT_PASSWORD:-secret}@postgres:5432/store_db
       PORT: 3004
     depends_on:
       postgres:
         condition: service_healthy
+
+  webapp:
+    build: ./services/webapp
+    ports:
+      - "3000:3000"
+    environment:
+      NUXT_PUBLIC_AUTH_API_BASE: ${AUTH_API_BASE:-http://localhost:3001}
+      PORT: 3000
+    depends_on:
+      - auth-service
 
 volumes:
   postgres_data:

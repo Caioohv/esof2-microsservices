@@ -34,12 +34,13 @@ A VPS já tem uma rede externa `caddy_net` gerenciada pelo Caddy (`infra/proxy`)
 Os serviços precisam estar nessa rede para o Caddy conseguir fazer proxy. As databases ficam apenas na rede interna `internal`.
 
 ```
-Internet → Caddy (caddy_net) → esof2_auth (3001)
+Internet → Caddy (caddy_net) → esof2_web   (3000)
+                             → esof2_auth  (3001)
                              → esof2_store (3004)
                                    ↓
                              internal network
-                               ↙        ↘
-                           mysql       postgres
+                          esof2_user (3002) ── postgres
+                                                (auth_db, user_db, store_db)
 ```
 
 ---
@@ -49,18 +50,26 @@ Internet → Caddy (caddy_net) → esof2_auth (3001)
 No arquivo `/home/viier/vps/infra/proxy/Caddyfile`, adicione:
 
 ```caddyfile
-# esof2 — auth-service
-auth.esof2.SEU_DOMINIO.com.br {
+# esof2 — webapp (vitrine)
+olimposhowcase.com.br {
+  reverse_proxy esof2_web:3000
+}
+
+# esof2 — auth-service (API de autenticação/cadastro)
+auth.olimposhowcase.com.br {
   reverse_proxy esof2_auth:3001
 }
 
-# esof2 — store-service
-store.esof2.SEU_DOMINIO.com.br {
+# esof2 — store-service (API de lojas)
+store.olimposhowcase.com.br {
   reverse_proxy esof2_store:3004
 }
 ```
 
-> Substitua `SEU_DOMINIO.com.br` pelo domínio real. Após editar, rode:
+> O `user-service` **não** é exposto pelo Caddy — só o auth-service fala com ele,
+> pela rede interna (`http://user-service:3002`).
+>
+> Após editar, rode:
 > ```bash
 > cd /path/to/vps/infra/proxy
 > docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile
@@ -73,18 +82,27 @@ store.esof2.SEU_DOMINIO.com.br {
 Crie o arquivo `.env` na raiz do projeto clonado na VPS:
 
 ```env
-# Banco de dados
+# Banco de dados (um Postgres com 3 bancos: auth_db, user_db, store_db)
 DB_ROOT_PASSWORD=senha_forte_aqui
 
 # JWT
 JWT_SECRET=segredo_jwt_aqui
 JWT_REFRESH_SECRET=segredo_refresh_aqui
 
+# Origem do front liberada no CORS do auth-service
+WEB_ORIGIN=https://olimposhowcase.com.br
+
+# URL pública do auth-service consumida pelo webapp
+AUTH_API_BASE=https://auth.olimposhowcase.com.br
+
 # Docker registry (seu usuário do GitHub)
 GHCR_OWNER=seu_usuario_github
 ```
 
 O `IMAGE_TAG` é passado em runtime pelo workflow de deploy — não precisa estar no `.env`.
+
+> Os bancos `auth_db`, `user_db` e `store_db` são criados automaticamente no
+> primeiro start do Postgres por `infra/postgres/init.sql`.
 
 ---
 

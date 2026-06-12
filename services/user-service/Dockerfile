@@ -17,5 +17,5 @@ COPY --from=builder /app/src/generated ./src/generated
 COPY prisma ./prisma
 COPY prisma.config.js ./
 ENV NODE_ENV=production
-EXPOSE 3001
+EXPOSE 3002
 CMD ["sh", "-c", "npx prisma migrate deploy && node src/index.js"]

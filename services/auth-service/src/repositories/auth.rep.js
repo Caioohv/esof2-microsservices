@@ -45,10 +45,15 @@ async function insertCredential(userId, email, passwordHash, passwordSalt) {
   });
 }
 
+async function deleteCredentialByUserId(userId) {
+  await prisma.credential.deleteMany({ where: { userId } });
+}
+
 module.exports = {
   findCredentialByEmail,
   insertRefreshToken,
   deleteRefreshToken,
   findActiveRefreshToken,
   insertCredential,
+  deleteCredentialByUserId,
 };
