@@ -1,4 +1,4 @@
-# Architecture Map - High-Ticket Showcase Platform
+# Architecture Map - High-Ticket Marketplace
 
 ## Visual Architecture
 
@@ -6,14 +6,14 @@
 
 ## Overview
 
-Este é um sistema distribuído de microsserviços que funciona como uma **vitrine para itens de alto valor** (carros, imóveis). A plataforma conecta clientes ricos com vendedores, facilitando agendamento de visitas.
+Sistema distribuído de microsserviços que funciona como um **marketplace curado de itens high-ticket** (imóveis, carros, embarcações, joias, arte). Lojas entram por aprovação. O cliente navega por produtos de múltiplas lojas, pode informar seu perfil para receber recomendações personalizadas, e agenda visitas presenciais — a venda ocorre fora da plataforma.
 
 **Stack Principal:**
-- **Node.js/JavaScript** - Linguagem primária
+- **Node.js/TypeScript** - Linguagem primária
 - **PostgreSQL** - Banco de dados principal
 - **Docker** - Containerização
 - **Nginx** - Reverse proxy
-- **Nuxt 3** - Frontend + BFF
+- **Nuxt 4** - Frontend + BFF
 
 ---
 
@@ -422,22 +422,26 @@ Nuxt 3 (port 3000)
 - [ ] Auth Service (Login, JWT, Refresh)
 - [ ] User Service (Profiles, Roles)
 
-### Phase 3: Store & Products
-- [ ] Store Service (CRUD)
-- [ ] Product Catalog (com S3)
-- [ ] Search/filtering
+### Phase 3: Store, Products & Marketplace
+- [ ] Store Service (CRUD + aprovação administrativa)
+- [ ] Product Catalog (com S3/MinIO) + categorias fechadas
+- [ ] Busca cross-store com filtros (categoria, preço, localização)
+- [ ] Recomendações por perfil (`GET /products/recommended`)
+- [ ] Discovery editorial (destaques, recém-chegados)
 
 ### Phase 4: Scheduling & Leads
-- [ ] Visit Scheduler
-- [ ] Notifications
+- [ ] Agendamento de visitas presenciais
+- [ ] Lifecycle de status (pending → confirmed → cancelled)
+- [ ] Notificações em transições de status
 
 ### Phase 5: Monetization
 - [ ] Payment Service
-- [ ] Subscription plans
+- [ ] Planos de assinatura para Lojistas
 
 ### Phase 6: Frontend
-- [ ] Nuxt premium UI
-- [ ] Showcase experience
+- [ ] Nuxt 4 com experiência de marketplace curado
+- [ ] Onboarding de perfil (questionário opcional)
+- [ ] Página de loja + busca global + agendamento
 
 ---
 

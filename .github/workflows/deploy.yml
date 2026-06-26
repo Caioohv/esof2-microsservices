@@ -1,0 +1,120 @@
+name: Deploy
+
+on:
+  push:
+    branches: [master]
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  test:
+    name: Tests (${{ matrix.service }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [auth-service, user-service, store-service]
+    defaults:
+      run:
+        working-directory: services/${{ matrix.service }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: services/${{ matrix.service }}/package-lock.json
+      - run: npm ci
+      - name: Run tests with coverage
+        run: node --experimental-test-coverage --test
+
+  build-and-push:
+    name: Build & Push images
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      OWNER: ${{ github.repository_owner }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set lowercase owner
+        run: echo "OWNER=${OWNER,,}" >> $GITHUB_ENV
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker
+
+      - name: Build e push auth-service
+        uses: docker/build-push-action@v5
+        with:
+          context: services/auth-service
+          push: true
+          tags: |
+            ghcr.io/${{ env.OWNER }}/esof2-auth-service:latest
+            ghcr.io/${{ env.OWNER }}/esof2-auth-service:${{ github.sha }}
+
+      - name: Build e push user-service
+        uses: docker/build-push-action@v5
+        with:
+          context: services/user-service
+          push: true
+          tags: |
+            ghcr.io/${{ env.OWNER }}/esof2-user-service:latest
+            ghcr.io/${{ env.OWNER }}/esof2-user-service:${{ github.sha }}
+
+      - name: Build e push store-service
+        uses: docker/build-push-action@v5
+        with:
+          context: services/store-service
+          push: true
+          tags: |
+            ghcr.io/${{ env.OWNER }}/esof2-store-service:latest
+            ghcr.io/${{ env.OWNER }}/esof2-store-service:${{ github.sha }}
+
+      - name: Build e push webapp
+        uses: docker/build-push-action@v5
+        with:
+          context: services/webapp
+          push: true
+          tags: |
+            ghcr.io/${{ env.OWNER }}/esof2-webapp:latest
+            ghcr.io/${{ env.OWNER }}/esof2-webapp:${{ github.sha }}
+
+  deploy:
+    name: Deploy na VPS
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment: deploy_prod
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: SSH deploy
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          port: ${{ secrets.VPS_SSH_PORT }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          debug: true
+          script: |
+            set -e
+            cd ${{ secrets.VPS_DEPLOY_PATH }}
+            git pull origin master
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            GHCR_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]') IMAGE_TAG=${{ github.sha }} \
+              docker compose -f docker-compose.prod.yml pull
+            GHCR_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]') IMAGE_TAG=${{ github.sha }} \
+              docker compose -f docker-compose.prod.yml up -d --remove-orphans
+            docker image prune -f
