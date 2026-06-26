@@ -1,18 +1,30 @@
+const { discoverService } = require('../lib/consul');
 const { AppError } = require('../errors');
 
-const BASE_URL = process.env.USER_SERVICE_URL || 'http://user-service:3002';
+let userServiceUrl = null;
 
-// Cria o usuário no user-service. O auth-service é dono da credencial;
-// o user-service é dono do perfil/usuário. A criação de conta envolve os dois.
+async function getBaseUrl() {
+  if (!userServiceUrl) {
+    try {
+      userServiceUrl = await discoverService('user-service');
+    } catch {
+      userServiceUrl = process.env.USER_SERVICE_URL || 'http://user-service:3002';
+    }
+  }
+  return userServiceUrl;
+}
+
 async function createUser({ id, email, role }) {
+  const baseUrl = await getBaseUrl();
   let res;
   try {
-    res = await fetch(`${BASE_URL}/users`, {
+    res = await fetch(`${baseUrl}/users`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, email, role }),
     });
   } catch {
+    userServiceUrl = null; // reset cache so next call re-discovers
     throw new AppError(502, 'user-service unreachable');
   }
 

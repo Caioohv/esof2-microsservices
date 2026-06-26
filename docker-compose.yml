@@ -1,4 +1,28 @@
 services:
+  consul:
+    image: hashicorp/consul:1.18
+    command: agent -server -bootstrap-expect=1 -ui -client=0.0.0.0
+    ports:
+      - "8500:8500"
+    healthcheck:
+      test: ["CMD", "consul", "members"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  consul-init:
+    image: hashicorp/consul:1.18
+    depends_on:
+      consul:
+        condition: service_healthy
+    environment:
+      CONSUL_HTTP_ADDR: consul:8500
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+    volumes:
+      - ./infra/consul/init.sh:/init.sh:ro
+    command: sh /init.sh
+    restart: "no"
+
   postgres:
     image: postgres:16-alpine
     environment:
@@ -24,11 +48,13 @@ services:
       JWT_SECRET: ${JWT_SECRET:-dev_jwt_secret}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-dev_jwt_refresh_secret}
       USER_SERVICE_URL: http://user-service:3002
-      CORS_ORIGIN: "*"
       PORT: 3001
+      CONSUL_HOST: consul
     depends_on:
       postgres:
         condition: service_healthy
+      consul-init:
+        condition: service_completed_successfully
 
   user-service:
     build: ./services/user-service
@@ -37,8 +63,11 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:${DB_ROOT_PASSWORD:-secret}@postgres:5432/user_db
       PORT: 3002
+      CONSUL_HOST: consul
     depends_on:
       postgres:
+        condition: service_healthy
+      consul:
         condition: service_healthy
 
   store-service:
@@ -48,8 +77,11 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:${DB_ROOT_PASSWORD:-secret}@postgres:5432/store_db
       PORT: 3004
+      CONSUL_HOST: consul
     depends_on:
       postgres:
+        condition: service_healthy
+      consul:
         condition: service_healthy
 
   webapp:
