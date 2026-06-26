@@ -1,60 +1,46 @@
-const storeService = require('../services/storeService')
+const bs = require('../business/store.bs')
 
-exports.createStore = async (req, res) => {
+exports.createStore = async (req, res, next) => {
   try {
-    const store = await storeService.createStore(req.body)
-
+    const store = await bs.createStore(req.body)
     res.status(201).json(store)
-  } catch (error) {
-    res.status(500).json({ error: error.message })
+  } catch (err) {
+    next(err)
   }
 }
 
-exports.getStores = async (req, res) => {
+exports.getStores = async (req, res, next) => {
   try {
-    const stores = await storeService.getStores()
-
+    const stores = await bs.listStores(req.query)
     res.json(stores)
-  } catch (error) {
-    res.status(500).json({ error: error.message })
+  } catch (err) {
+    next(err)
   }
 }
 
-exports.getStoreById = async (req, res) => {
+exports.getStoreById = async (req, res, next) => {
   try {
-    const store = await storeService.getStoreById(req.params.id)
-
-    if (!store) {
-      return res.status(404).json({
-        message: 'Loja não encontrada'
-      })
-    }
-
+    const store = await bs.getStore(req.params.id)
     res.json(store)
-  } catch (error) {
-    res.status(500).json({ error: error.message })
+  } catch (err) {
+    next(err)
   }
 }
 
-exports.updateStore = async (req, res) => {
+exports.updateStore = async (req, res, next) => {
   try {
-    const store = await storeService.updateStore(
-      req.params.id,
-      req.body
-    )
-
+    const store = await bs.updateStore(req.params.id, req.body)
     res.json(store)
-  } catch (error) {
-    res.status(500).json({ error: error.message })
+  } catch (err) {
+    next(err)
   }
 }
 
-exports.deleteStore = async (req, res) => {
+exports.deleteStore = async (req, res, next) => {
   try {
-    await storeService.deleteStore(req.params.id)
-
-    return res.status(204).send()
-  } catch (error) {
-    res.status(500).json({ error: error.message })
+    await bs.deleteStore(req.params.id)
+    res.status(204).send()
+  } catch (err) {
+    next(err)
   }
 }
