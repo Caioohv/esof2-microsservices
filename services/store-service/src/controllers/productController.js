@@ -1,66 +1,46 @@
-const productService = require('../services/productService')
+const bs = require('../business/product.bs')
 
-exports.createProduct = async (req, res) => {
+exports.createProduct = async (req, res, next) => {
   try {
-    const product = await productService.createProduct(
-      req.params.id,
-      req.body
-    )
-
+    const product = await bs.createProduct(req.params.id, req.body)
     res.status(201).json(product)
-  } catch (error) {
-    res.status(500).json({ error: error.message })
+  } catch (err) {
+    next(err)
   }
 }
 
-exports.getProducts = async (req, res) => {
+exports.getProducts = async (req, res, next) => {
   try {
-    const products = await productService.getProducts(
-      req.params.id
-    )
-
+    const products = await bs.listProducts(req.params.id)
     res.json(products)
-  } catch (error) {
-    res.status(500).json({ error: error.message })
+  } catch (err) {
+    next(err)
   }
 }
 
-exports.getProductById = async (req, res) => {
+exports.getProductById = async (req, res, next) => {
   try {
-    const product = await productService.getProductById(
-      req.params.id,
-      req.params.productId
-    )
-
+    const product = await bs.getProduct(req.params.id, req.params.productId)
     res.json(product)
-  } catch (error) {
-    res.status(500).json({ error: error.message })
+  } catch (err) {
+    next(err)
   }
 }
 
-exports.updateProduct = async (req, res) => {
+exports.updateProduct = async (req, res, next) => {
   try {
-    const product = await productService.updateProduct(
-      req.params.id,
-      req.params.productId,
-      req.body
-    )
-
+    const product = await bs.updateProduct(req.params.id, req.params.productId, req.body)
     res.json(product)
-  } catch (error) {
-    res.status(500).json({ error: error.message })
+  } catch (err) {
+    next(err)
   }
 }
 
-exports.deleteProduct = async (req, res) => {
+exports.deleteProduct = async (req, res, next) => {
   try {
-    await productService.deleteProduct(
-      req.params.id,
-      req.params.productId
-    )
-
-    return res.status(204).send()
-  } catch (error) {
-    res.status(500).json({ error: error.message })
+    await bs.deleteProduct(req.params.id, req.params.productId)
+    res.status(204).send()
+  } catch (err) {
+    next(err)
   }
 }
