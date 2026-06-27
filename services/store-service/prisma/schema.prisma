@@ -9,6 +9,7 @@ datasource db {
 
 model Store {
   id          String    @id @default(uuid())
+  ownerId     String    @map("owner_id")
   name        String
   description String?
   category    String?
@@ -16,6 +17,7 @@ model Store {
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
 
+  @@index([ownerId])
   @@map("stores")
 }
 

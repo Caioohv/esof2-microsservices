@@ -4,16 +4,16 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
 }
 
 model Credential {
-  id            String   @id @default(uuid())
-  userId        String   @unique @map("user_id")
-  email         String   @unique
-  passwordHash  String   @map("password_hash") @db.VarChar(128)
-  passwordSalt  String   @map("password_salt") @db.VarChar(32)
-  createdAt     DateTime @default(now()) @map("created_at")
+  id           String   @id @default(uuid())
+  userId       String   @unique @map("user_id")
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  passwordSalt String   @map("password_salt")
+  createdAt    DateTime @default(now()) @map("created_at")
 
   @@map("credentials")
 }
@@ -21,7 +21,7 @@ model Credential {
 model RefreshToken {
   id        String   @id @default(uuid())
   userId    String   @map("user_id")
-  tokenHash String   @map("token_hash") @db.VarChar(64)
+  tokenHash String   @map("token_hash")
   expiresAt DateTime @map("expires_at")
   createdAt DateTime @default(now()) @map("created_at")
 

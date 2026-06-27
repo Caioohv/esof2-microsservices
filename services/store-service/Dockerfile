@@ -1,5 +1,5 @@
 # --- build: gera o cliente Prisma ---
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
 COPY prisma.config.js ./
@@ -8,7 +8,7 @@ RUN npm ci
 RUN npx prisma generate
 
 # --- runtime ---
-FROM node:20-alpine
+FROM node:22-alpine
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --omit=dev

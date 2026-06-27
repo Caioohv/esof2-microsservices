@@ -1,6 +1,8 @@
+const crypto = require('crypto');
 const { hashPassword, generateSalt } = require('../crypto');
 const { issueAccessToken, issueRefreshToken, verifyRefreshToken, verifyAccessToken } = require('../jwt');
 const repo = require('../repositories/auth.rep');
+const userClient = require('../clients/user.client');
 const { AppError } = require('../errors');
 
 async function login(email, password) {
@@ -46,7 +48,12 @@ function verify(token) {
   }
 }
 
-async function register(userId, email, password) {
+// Criação de conta: o auth-service orquestra a transação.
+// 1. grava a credencial (porta de unicidade do email);
+// 2. cria o usuário no user-service;
+// 3. se o passo 2 falhar, faz rollback da credencial (best-effort).
+async function register(email, password, role = 'CLIENTE') {
+  const userId = crypto.randomUUID();
   const salt = generateSalt();
   const hash = hashPassword(password, salt);
 
@@ -56,6 +63,16 @@ async function register(userId, email, password) {
     if (err.code === 'P2002') throw new AppError(409, 'email already registered');
     throw err;
   }
+
+  try {
+    await userClient.createUser({ id: userId, email, role });
+  } catch (err) {
+    // rollback da credencial para não deixar conta órfã
+    await repo.deleteCredentialByUserId(userId).catch(() => {});
+    throw err;
+  }
+
+  return { user_id: userId, email, role };
 }
 
 module.exports = { login, logout, refresh, verify, register };

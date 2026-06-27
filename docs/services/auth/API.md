@@ -340,9 +340,11 @@ async function logout(refreshToken) {
 
 ---
 
-## 🔒 POST /register *(Internal Endpoint)*
+## POST /register
 
-Registra as credenciais de um novo usuário. **Este endpoint é apenas para uso interno, chamado automaticamente pelo User Service**.
+Cria uma conta. O auth-service **orquestra** a criação: gera o `user_id`, grava a
+credencial e cria o usuário no User Service. Se a criação do usuário falhar, a
+credencial sofre rollback (não fica conta órfã).
 
 ### Request
 
@@ -351,9 +353,9 @@ POST /register
 Content-Type: application/json
 
 {
-  "user_id": "550e8400-e29b-41d4-a716-446655440000",
   "email": "newuser@example.com",
-  "password": "novaSenha123"
+  "password": "novaSenha123",
+  "role": "CLIENTE"
 }
 ```
 
@@ -361,9 +363,12 @@ Content-Type: application/json
 
 | Campo | Tipo | Obrigatório | Descrição |
 |-------|------|-------------|-----------|
-| `user_id` | string | ✅ Sim | UUID do usuário (criado pelo User Service) |
 | `email` | string | ✅ Sim | Email do usuário |
 | `password` | string | ✅ Sim | Senha em texto plano (será hasheada) |
+| `role` | string | ❌ Não | `CLIENTE` (padrão), `LOJISTA` ou `ADMIN` |
+
+> O `user_id` **não** é mais enviado pelo cliente — é gerado pelo auth-service e
+> compartilhado com o User Service.
 
 ### Response
 
@@ -371,7 +376,10 @@ Content-Type: application/json
 
 ```json
 {
-  "message": "credentials created"
+  "message": "account created",
+  "user_id": "550e8400-e29b-41d4-a716-446655440000",
+  "email": "newuser@example.com",
+  "role": "CLIENTE"
 }
 ```
 
@@ -379,7 +387,7 @@ Content-Type: application/json
 
 ```json
 {
-  "error": "user_id, email, and password required"
+  "error": "email and password required"
 }
 ```
 
@@ -391,16 +399,23 @@ Content-Type: application/json
 }
 ```
 
+#### ❌ 502 Bad Gateway
+
+```json
+{
+  "error": "user-service unreachable"
+}
+```
+
 ### Example cURL
 
 ```bash
-# Apenas use este endpoint se você estiver desenvolvendo o User Service
 curl -X POST http://localhost:3001/register \
   -H "Content-Type: application/json" \
   -d '{
-    "user_id": "550e8400-e29b-41d4-a716-446655440000",
     "email": "newuser@example.com",
-    "password": "novaSenha123"
+    "password": "novaSenha123",
+    "role": "CLIENTE"
   }'
 ```
 

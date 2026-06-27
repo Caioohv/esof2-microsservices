@@ -1,10 +1,10 @@
 const router = require('express').Router();
-const controller = require('../controllers/store.ctrl');
+const controller = require('../controllers/storeController');
 
-router.post('/', controller.create);
-router.get('/', controller.list);
-router.get('/:id', controller.getById);
-router.put('/:id', controller.update);
-router.delete('/:id', controller.remove);
+router.post('/', controller.createStore);
+router.get('/', controller.getStores);
+router.get('/:id', controller.getStoreById);
+router.put('/:id', controller.updateStore);
+router.delete('/:id', controller.deleteStore);
 
 module.exports = router;
