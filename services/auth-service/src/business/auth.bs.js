@@ -9,7 +9,7 @@ async function login(email, password) {
   const credential = await repo.findCredentialByEmail(email);
   if (!credential) throw new AppError(401, 'invalid credentials');
 
-  const hash = hashPassword(password, credential.passwordHash);
+  const hash = hashPassword(password, credential.passwordSalt);
   if (hash !== credential.passwordHash) throw new AppError(401, 'invalid credentials');
 
   const payload = { sub: credential.userId, email: credential.email };

@@ -11,15 +11,19 @@
         <p class="login-card__sub">Entre com suas credenciais para continuar.</p>
       </div>
 
-      <form class="login-card__form" @submit.prevent>
-        <OInput id="email"    label="E-mail" type="email"    placeholder="seu@email.com" />
-        <OInput id="password" label="Senha"  type="password" placeholder="••••••••"      />
+      <form class="login-card__form" @submit.prevent="onSubmit">
+        <OInput id="email"    v-model="email"    label="E-mail" type="email"    placeholder="seu@email.com" autocomplete="email" />
+        <OInput id="password" v-model="password" label="Senha"  type="password" placeholder="••••••••" autocomplete="current-password" />
 
         <div class="login-card__forgot">
           <a href="#" class="login-card__link">Esqueci minha senha</a>
         </div>
 
-        <OButton variant="primary" :full="true" type="submit">Entrar</OButton>
+        <p v-if="error" class="login-card__error" role="alert">{{ error }}</p>
+
+        <OButton variant="primary" :full="true" type="submit" :disabled="loading">
+          {{ loading ? 'Entrando…' : 'Entrar' }}
+        </OButton>
       </form>
 
       <p class="login-card__register">
@@ -33,6 +37,39 @@
 
 <script setup lang="ts">
 useSeoMeta({ title: 'Entrar — Olimpo' })
+
+const config = useRuntimeConfig()
+const router = useRouter()
+const { setTokens } = useAuth()
+
+const email = ref('')
+const password = ref('')
+const loading = ref(false)
+const error = ref('')
+
+async function onSubmit() {
+  error.value = ''
+  if (!email.value || !password.value) {
+    error.value = 'Preencha e-mail e senha.'
+    return
+  }
+
+  loading.value = true
+  try {
+    const result = await $fetch<{ access_token: string; refresh_token: string }>(
+      `${config.public.authApiBase}/login`,
+      { method: 'POST', body: { email: email.value, password: password.value } },
+    )
+    setTokens(result)
+    await router.push('/')
+  } catch (err: any) {
+    error.value = err?.data?.error === 'invalid credentials'
+      ? 'E-mail ou senha incorretos.'
+      : 'Não foi possível entrar. Tente novamente.'
+  } finally {
+    loading.value = false
+  }
+}
 </script>
 
 <style scoped>
@@ -112,6 +149,11 @@ useSeoMeta({ title: 'Entrar — Olimpo' })
 }
 
 .login-card__link:hover { opacity: 0.75; }
+
+.login-card__error {
+  font-size: 13px;
+  color: var(--color-error);
+}
 
 .login-card__register {
   font-size: 13px;
