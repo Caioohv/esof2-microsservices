@@ -46,7 +46,7 @@ async function discoverService(name) {
 async function getConfig(key, defaultValue) {
   try {
     const result = await consul.kv.get(key);
-    if (result && result.Value) return result.Value;
+    if (result && result.Value) return Buffer.from(result.Value, 'base64').toString('utf8');
   } catch {
     // consul unavailable — fall through to default
   }
