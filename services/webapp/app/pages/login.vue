@@ -47,9 +47,14 @@ const password = ref('')
 const loading = ref(false)
 const error = ref('')
 
+function logEvent(event: string, level: string, data: Record<string, unknown>) {
+  $fetch('/api/events', { method: 'POST', body: { event, level, data } }).catch(() => {})
+}
+
 async function onSubmit() {
   error.value = ''
   if (!email.value || !password.value) {
+    logEvent('client_validation_error', 'warn', { page: 'login', reason: 'missing_fields' })
     error.value = 'Preencha e-mail e senha.'
     return
   }
@@ -61,9 +66,12 @@ async function onSubmit() {
       { method: 'POST', body: { email: email.value, password: password.value } },
     )
     setTokens(result)
+    logEvent('login_success', 'info', { email: email.value })
     await router.push('/')
   } catch (err: any) {
-    error.value = err?.data?.error === 'invalid credentials'
+    const reason = err?.data?.error ?? 'unknown'
+    logEvent('login_failure', 'warn', { email: email.value, reason })
+    error.value = reason === 'invalid credentials'
       ? 'E-mail ou senha incorretos.'
       : 'Não foi possível entrar. Tente novamente.'
   } finally {

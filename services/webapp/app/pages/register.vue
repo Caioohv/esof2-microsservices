@@ -88,19 +88,26 @@ const loading = ref(false)
 const error = ref('')
 const success = ref('')
 
+function logEvent(event: string, level: string, data: Record<string, unknown>) {
+  $fetch('/api/events', { method: 'POST', body: { event, level, data } }).catch(() => {})
+}
+
 async function onSubmit() {
   error.value = ''
   success.value = ''
 
   if (!email.value || !password.value) {
+    logEvent('client_validation_error', 'warn', { page: 'register', reason: 'missing_fields' })
     error.value = 'Preencha e-mail e senha.'
     return
   }
   if (password.value.length < 8) {
+    logEvent('client_validation_error', 'warn', { page: 'register', reason: 'password_too_short' })
     error.value = 'A senha deve ter ao menos 8 caracteres.'
     return
   }
   if (password.value !== confirm.value) {
+    logEvent('client_validation_error', 'warn', { page: 'register', reason: 'password_mismatch' })
     error.value = 'As senhas não conferem.'
     return
   }
@@ -111,10 +118,13 @@ async function onSubmit() {
       method: 'POST',
       body: { email: email.value, password: password.value, role: role.value },
     })
+    logEvent('register_success', 'info', { email: email.value, role: role.value })
     success.value = 'Conta criada! Redirecionando para o login…'
     setTimeout(() => router.push('/login'), 1200)
   } catch (err: any) {
-    error.value = err?.data?.error || 'Não foi possível criar a conta. Tente novamente.'
+    const reason = err?.data?.error ?? 'unknown'
+    logEvent('register_failure', 'warn', { email: email.value, role: role.value, reason })
+    error.value = reason || 'Não foi possível criar a conta. Tente novamente.'
   } finally {
     loading.value = false
   }
