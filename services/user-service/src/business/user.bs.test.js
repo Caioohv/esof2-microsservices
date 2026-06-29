@@ -75,3 +75,53 @@ test('getUser: lança 404 quando não existe', async () => {
 
   await assert.rejects(() => bs.getUser('x'), { status: 404 });
 });
+
+// --- getMe ---
+
+test('getMe: lança 401 quando não recebe token', async () => {
+  await assert.rejects(() => bs.getMe(), { status: 401 });
+});
+
+test('getMe: retorna usuário autenticado quando token é válido', async () => {
+  process.env.AUTH_SERVICE_URL = 'http://auth-service:3001';
+
+  const originalFetch = global.fetch;
+
+  global.fetch = mock.fn(async () => ({
+    ok: true,
+    json: async () => ({
+      valid: true,
+      user: { id: 'u1', email: 'a@b.com' },
+    }),
+  }));
+
+  repMock.findUserById.mock.mockImplementation(async () => ({
+    id: 'u1',
+    email: 'a@b.com',
+    role: 'CLIENTE',
+  }));
+
+  const result = await bs.getMe('Bearer token-valido');
+
+  assert.equal(result.id, 'u1');
+  assert.equal(result.email, 'a@b.com');
+  assert.equal(global.fetch.mock.calls.length, 1);
+  assert.equal(repMock.findUserById.mock.calls.length, 1);
+
+  global.fetch = originalFetch;
+});
+
+test('getMe: lança 401 quando auth-service rejeita token', async () => {
+  process.env.AUTH_SERVICE_URL = 'http://auth-service:3001';
+
+  const originalFetch = global.fetch;
+
+  global.fetch = mock.fn(async () => ({
+    ok: false,
+    json: async () => ({ valid: false }),
+  }));
+
+  await assert.rejects(() => bs.getMe('Bearer token-invalido'), { status: 401 });
+
+  global.fetch = originalFetch;
+});

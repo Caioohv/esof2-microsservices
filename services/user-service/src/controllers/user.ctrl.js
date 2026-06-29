@@ -33,8 +33,20 @@ async function getById(req, res) {
   }
 }
 
+async function me(req, res) {
+  const authHeader = req.headers['authorization'];
+
+  try {
+    const user = await business.getMe(authHeader);
+    res.json(user);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
+}
+
 module.exports = {
   health,
   create,
   getById,
+  me,
 };

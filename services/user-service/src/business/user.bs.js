@@ -23,8 +23,29 @@ async function getUser(id) {
   return user;
 }
 
+async function getMe(authHeader) {
+  if (!authHeader) throw new AppError(401, 'token required');
+
+  const res = await fetch(`${process.env.AUTH_SERVICE_URL}/verify`, {
+    method: 'POST',
+    headers: {
+      Authorization: authHeader,
+    },
+  });
+
+  if (!res.ok) throw new AppError(401, 'invalid or expired token');
+
+  const result = await res.json();
+  const user = await repo.findUserById(result.user.id);
+
+  if (!user) throw new AppError(404, 'user not found');
+
+  return user;
+}
+
 module.exports = {
   health,
   createUser,
   getUser,
+  getMe,
 };
