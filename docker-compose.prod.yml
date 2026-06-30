@@ -64,7 +64,6 @@ services:
         condition: service_completed_successfully
     networks:
       - internal
-      - caddy_net
 
   user-service:
     image: ghcr.io/${GHCR_OWNER}/esof2-user-service:${IMAGE_TAG:-latest}
@@ -98,17 +97,18 @@ services:
         condition: service_healthy
     networks:
       - internal
-      - caddy_net
 
   webapp:
     image: ghcr.io/${GHCR_OWNER}/esof2-webapp:${IMAGE_TAG:-latest}
     container_name: esof2_web
     restart: unless-stopped
     environment:
-      NUXT_PUBLIC_AUTH_API_BASE: ${AUTH_API_BASE:-https://auth.olimposhowcase.com.br}
+      AUTH_SERVICE_URL: http://auth-service:3001
+      STORE_SERVICE_URL: http://store-service:3004
       PORT: 3000
     networks:
       - caddy_net
+      - internal
 
 volumes:
   postgres_data:

@@ -4,10 +4,13 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
 
   runtimeConfig: {
+    // Private keys (server-only)
+    authServiceUrl: process.env.AUTH_SERVICE_URL || 'http://localhost:3001',
+    storeServiceUrl: process.env.STORE_SERVICE_URL || 'http://localhost:3004',
+
     public: {
-      // URL pública do auth-service. Sobrescrita em produção por
-      // NUXT_PUBLIC_AUTH_API_BASE (ex: https://auth.olimposhowcase.com.br).
-      authApiBase: 'http://localhost:3001',
+      // Points to the Nuxt backend gateway
+      authApiBase: '/api/auth',
     },
   },
 

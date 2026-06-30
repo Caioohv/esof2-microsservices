@@ -31,38 +31,28 @@ Roda apenas no push para `master`:
 
 A VPS já tem uma rede externa `caddy_net` gerenciada pelo Caddy (`infra/proxy`).
 
-Os serviços precisam estar nessa rede para o Caddy conseguir fazer proxy. As databases ficam apenas na rede interna `internal`.
+Apenas o `webapp` (Nuxt) precisa estar nessa rede para receber tráfego da Internet. O `webapp` atua como API Gateway, comunicando-se com os microsserviços (`auth-service`, `store-service`, `user-service`) e com o Consul e PostgreSQL apenas pela rede interna `internal`.
 
 ```
-Internet → Caddy (caddy_net) → esof2_web   (3000)
-                             → esof2_auth  (3001)
-                             → esof2_store (3004)
-                                   ↓
+Internet → Caddy (caddy_net) → esof2_web (3000) [API Gateway]
+                                    ↓
                              internal network
-                          esof2_user (3002) ── postgres
-                                                (auth_db, user_db, store_db)
+                           esof2_auth (3001)
+                           esof2_store (3004)
+                           esof2_user (3002) ── postgres
+                                                 (auth_db, user_db, store_db)
 ```
 
 ---
 
 ## Caddyfile — entradas a adicionar
 
-No arquivo `/home/viier/vps/infra/proxy/Caddyfile`, adicione:
+No arquivo `/home/viier/vps/infra/proxy/Caddyfile`, adicione apenas o webapp (os microsserviços ficam isolados internamente):
 
 ```caddyfile
-# esof2 — webapp (vitrine)
+# esof2 — webapp (vitrine + API Gateway)
 olimposhowcase.com.br {
   reverse_proxy esof2_web:3000
-}
-
-# esof2 — auth-service (API de autenticação/cadastro)
-auth.olimposhowcase.com.br {
-  reverse_proxy esof2_auth:3001
-}
-
-# esof2 — store-service (API de lojas)
-store.olimposhowcase.com.br {
-  reverse_proxy esof2_store:3004
 }
 ```
 
@@ -89,11 +79,8 @@ DB_ROOT_PASSWORD=senha_forte_aqui
 JWT_SECRET=segredo_jwt_aqui
 JWT_REFRESH_SECRET=segredo_refresh_aqui
 
-# Origem do front liberada no CORS do auth-service
+# Origem do front liberada no CORS do auth-service (opcional agora com proxy)
 WEB_ORIGIN=https://olimposhowcase.com.br
-
-# URL pública do auth-service consumida pelo webapp
-AUTH_API_BASE=https://auth.olimposhowcase.com.br
 
 # Docker registry (seu usuário do GitHub)
 GHCR_OWNER=seu_usuario_github
