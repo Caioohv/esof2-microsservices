@@ -15,7 +15,14 @@ async function findUserById(id) {
   return prisma.user.findUnique({ where: { id } });
 }
 
+async function updateUser(id, data) {
+  return prisma.user.update({
+    where: { id },
+    data,
+  });
+}
 module.exports = {
   insertUser,
   findUserById,
+  updateUser,
 };

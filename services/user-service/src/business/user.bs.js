@@ -43,9 +43,28 @@ async function getMe(authHeader) {
   return user;
 }
 
+async function updateUser(id, { email, role }) {
+  const data = {};
+
+  if (email !== undefined) data.email = email;
+  if (role !== undefined) data.role = role;
+
+  if (Object.keys(data).length === 0) {
+    throw new AppError(400, 'no fields to update');
+  }
+
+  try {
+    return await repo.updateUser(id, data);
+  } catch (err) {
+    if (err.code === 'P2025') throw new AppError(404, 'user not found');
+    if (err.code === 'P2002') throw new AppError(409, 'email already registered');
+    throw err;
+  }
+}
 module.exports = {
   health,
   createUser,
   getUser,
   getMe,
+  updateUser,
 };

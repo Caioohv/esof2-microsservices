@@ -44,9 +44,29 @@ async function me(req, res) {
   }
 }
 
+async function update(req, res) {
+  const { email, role } = req.body;
+
+  if (email !== undefined && !EMAIL_RE.test(email)) {
+    return res.status(400).json({ error: 'invalid email format' });
+  }
+
+  if (role !== undefined && !VALID_ROLES.includes(role)) {
+    return res.status(400).json({ error: 'invalid role' });
+  }
+
+  try {
+    const user = await business.updateUser(req.params.id, { email, role });
+    res.json(user);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
+}
+
 module.exports = {
   health,
   create,
   getById,
   me,
+  update,
 };

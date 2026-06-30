@@ -5,6 +5,7 @@ const assert = require('node:assert/strict');
 const repMock = {
   insertUser: mock.fn(),
   findUserById: mock.fn(),
+  updateUser: mock.fn(),
 };
 
 // injeta o mock do repositório antes de carregar o módulo de negócio
@@ -124,4 +125,56 @@ test('getMe: lança 401 quando auth-service rejeita token', async () => {
   await assert.rejects(() => bs.getMe('Bearer token-invalido'), { status: 401 });
 
   global.fetch = originalFetch;
+});
+
+// --- updateUser ---
+
+test('updateUser: atualiza e retorna o usuário', async () => {
+  repMock.updateUser.mock.mockImplementation(async (id, data) => ({
+    id,
+    email: data.email,
+    role: data.role,
+  }));
+
+  const result = await bs.updateUser('u1', {
+    email: 'novo@email.com',
+    role: 'LOJISTA',
+  });
+
+  assert.equal(result.id, 'u1');
+  assert.equal(result.email, 'novo@email.com');
+  assert.equal(result.role, 'LOJISTA');
+  assert.equal(repMock.updateUser.mock.calls.length, 1);
+});
+
+test('updateUser: lança 400 quando nenhum campo é enviado', async () => {
+  await assert.rejects(() => bs.updateUser('u1', {}), { status: 400 });
+});
+
+test('updateUser: lança 404 quando usuário não existe', async () => {
+  const err = new Error('not found');
+  err.code = 'P2025';
+
+  repMock.updateUser.mock.mockImplementation(async () => {
+    throw err;
+  });
+
+  await assert.rejects(
+    () => bs.updateUser('usuario-inexistente', { email: 'a@b.com' }),
+    { status: 404 },
+  );
+});
+
+test('updateUser: lança 409 quando email já está cadastrado', async () => {
+  const err = new Error('unique');
+  err.code = 'P2002';
+
+  repMock.updateUser.mock.mockImplementation(async () => {
+    throw err;
+  });
+
+  await assert.rejects(
+    () => bs.updateUser('u1', { email: 'duplicado@email.com' }),
+    { status: 409 },
+  );
 });
