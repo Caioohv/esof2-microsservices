@@ -13,7 +13,7 @@ async function main() {
   );
 
   const app = express();
-  app.use(cors({ origin: corsOrigin }));
+  app.use(cors());
   app.use(express.json());
   app.use(logger);
   app.get('/health', (req, res) => res.json({ status: 'ok', service: 'auth-service' }));

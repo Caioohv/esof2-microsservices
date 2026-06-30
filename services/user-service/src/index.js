@@ -7,7 +7,7 @@ const { register, deregister } = require('./lib/consul');
 const PORT = process.env.PORT || 3002;
 
 const app = express();
-app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
+app.use(cors());
 app.use(express.json());
 app.use(logger);
 app.use(userRoutes);

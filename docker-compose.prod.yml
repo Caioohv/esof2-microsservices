@@ -74,6 +74,7 @@ services:
       DATABASE_URL: postgresql://postgres:${DB_ROOT_PASSWORD}@postgres:5432/user_db
       PORT: 3002
       CONSUL_HOST: consul
+      AUTH_SERVICE_URL: http://auth-service:3001
     depends_on:
       postgres:
         condition: service_healthy

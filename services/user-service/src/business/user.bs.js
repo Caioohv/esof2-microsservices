@@ -1,6 +1,21 @@
 const repo = require('../repositories/user.rep');
 const { AppError } = require('../errors');
 const logger = require('../lib/logger');
+const { discoverService } = require('../lib/consul');
+
+let authServiceUrl = null;
+
+async function getAuthServiceUrl() {
+  if (!authServiceUrl) {
+    try {
+      authServiceUrl = await discoverService('auth-service');
+    } catch {
+      authServiceUrl = process.env.AUTH_SERVICE_URL || 'http://auth-service:3001';
+    }
+  }
+  return authServiceUrl;
+}
+
 
 function health() {
   return { status: 'ok', service: 'user-service' };
@@ -32,12 +47,19 @@ async function getUser(id) {
 async function getMe(authHeader) {
   if (!authHeader) throw new AppError(401, 'token required');
 
-  const res = await fetch(`${process.env.AUTH_SERVICE_URL}/verify`, {
-    method: 'POST',
-    headers: {
-      Authorization: authHeader,
-    },
-  });
+  const baseUrl = await getAuthServiceUrl();
+  let res;
+  try {
+    res = await fetch(`${baseUrl}/verify`, {
+      method: 'POST',
+      headers: {
+        Authorization: authHeader,
+      },
+    });
+  } catch (err) {
+    authServiceUrl = null;
+    throw new AppError(502, 'auth-service unreachable');
+  }
 
   if (!res.ok) throw new AppError(401, 'invalid or expired token');
 
