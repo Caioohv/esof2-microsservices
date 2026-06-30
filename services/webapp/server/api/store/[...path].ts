@@ -15,5 +15,22 @@ export default defineEventHandler(async (event) => {
   const path = event.path.replace(/^\/api\/store/, '/store')
   const targetUrl = `${targetBase}${path}`
 
-  return proxyRequest(event, targetUrl)
+  try {
+    return await proxyRequest(event, targetUrl, {
+      headers: {
+        host: new URL(targetBase).host,
+      },
+    })
+  } catch (err: any) {
+    console.error(`[Proxy Error] Failed to proxy request to ${targetUrl}:`, err)
+    throw createError({
+      statusCode: 502,
+      statusMessage: 'Bad Gateway',
+      message: `Failed to connect to internal store-service at ${targetUrl}. Details: ${err.message || err}`,
+      data: {
+        targetUrl,
+        code: err.code,
+      },
+    })
+  }
 })
