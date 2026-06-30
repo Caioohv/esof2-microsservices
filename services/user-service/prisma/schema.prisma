@@ -13,11 +13,50 @@ enum Role {
   CLIENTE
 }
 
+enum SellerStatus {
+  pending
+  approved
+  rejected
+}
+
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  role      Role
-  createdAt DateTime @default(now()) @map("created_at")
+  id            String         @id @default(uuid())
+  email         String         @unique
+  role          Role
+  createdAt     DateTime       @default(now()) @map("created_at")
+  sellerProfile SellerProfile?
+  userProfile   UserProfile?
 
   @@map("users")
+}
+
+model SellerProfile {
+  id           String       @id @default(uuid())
+  userId       String       @unique @map("user_id")
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessName String       @map("business_name")
+  description  String?
+  status       SellerStatus @default(pending)
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  @@map("seller_profiles")
+}
+
+model UserProfile {
+  id             String   @id @default(uuid())
+  userId         String   @unique @map("user_id")
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  minBedrooms    Int?     @map("min_bedrooms")
+  minBathrooms   Int?     @map("min_bathrooms")
+  wantsGarage    Boolean? @map("wants_garage")
+  preferredDoors Int?     @map("preferred_doors")
+  preferredFuel  String?  @map("preferred_fuel")
+  lifestyleTags  String[] @default([]) @map("lifestyle_tags")
+  incomeRange    String?  @map("income_range")
+  preferences    Json?
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@map("user_profiles")
 }
