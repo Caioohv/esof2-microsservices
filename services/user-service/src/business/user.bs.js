@@ -102,6 +102,48 @@ async function updateSellerProfile(userId, { businessName, description, status }
   }
 }
 
+async function upsertUserProfile(userId, {
+  minBedrooms,
+  minBathrooms,
+  wantsGarage,
+  preferredDoors,
+  preferredFuel,
+  lifestyleTags,
+  incomeRange,
+  preferences,
+}) {
+  const user = await repo.findUserById(userId);
+  if (!user) throw new AppError(404, 'user not found');
+
+  const data = {};
+
+  if (minBedrooms !== undefined) data.minBedrooms = minBedrooms;
+  if (minBathrooms !== undefined) data.minBathrooms = minBathrooms;
+  if (wantsGarage !== undefined) data.wantsGarage = wantsGarage;
+  if (preferredDoors !== undefined) data.preferredDoors = preferredDoors;
+  if (preferredFuel !== undefined) data.preferredFuel = preferredFuel;
+  if (lifestyleTags !== undefined) data.lifestyleTags = lifestyleTags;
+  if (incomeRange !== undefined) data.incomeRange = incomeRange;
+  if (preferences !== undefined) data.preferences = preferences;
+
+  if (Object.keys(data).length === 0) {
+    throw new AppError(400, 'no profile fields provided');
+  }
+
+  try {
+    return await repo.upsertUserProfile(userId, data);
+  } catch (err) {
+    if (err.code === 'P2003') throw new AppError(404, 'user not found');
+    throw err;
+  }
+}
+
+async function getUserProfile(userId) {
+  const profile = await repo.findUserProfileByUserId(userId);
+  if (!profile) throw new AppError(404, 'user profile not found');
+  return profile;
+}
+
 module.exports = {
   health,
   createUser,
@@ -111,4 +153,6 @@ module.exports = {
   createSellerProfile,
   getSellerProfile,
   updateSellerProfile,
+  upsertUserProfile,
+  getUserProfile,
 };

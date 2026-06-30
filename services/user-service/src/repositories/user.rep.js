@@ -45,6 +45,23 @@ async function updateSellerProfile(userId, data) {
   });
 }
 
+async function upsertUserProfile(userId, data) {
+  return prisma.userProfile.upsert({
+    where: { userId },
+    update: data,
+    create: {
+      userId,
+      ...data,
+    },
+  });
+}
+
+async function findUserProfileByUserId(userId) {
+  return prisma.userProfile.findUnique({
+    where: { userId },
+  });
+}
+
 module.exports = {
   insertUser,
   findUserById,
@@ -52,4 +69,6 @@ module.exports = {
   insertSellerProfile,
   findSellerProfileByUserId,
   updateSellerProfile,
+  upsertUserProfile,
+  findUserProfileByUserId,
 };

@@ -9,6 +9,8 @@ const repMock = {
   insertSellerProfile: mock.fn(),
   findSellerProfileByUserId: mock.fn(),
   updateSellerProfile: mock.fn(),
+  upsertUserProfile: mock.fn(),
+  findUserProfileByUserId: mock.fn(),
 };
 
 // injeta o mock do repositório antes de carregar o módulo de negócio
@@ -307,6 +309,84 @@ test('updateSellerProfile: lança 404 quando perfil não existe', async () => {
 
   await assert.rejects(
     () => bs.updateSellerProfile('u1', { businessName: 'Loja' }),
+    { status: 404 },
+  );
+});
+
+// --- UserProfile ---
+
+test('upsertUserProfile: cria ou atualiza perfil de usuário', async () => {
+  repMock.findUserById.mock.mockImplementation(async () => ({
+    id: 'u1',
+    email: 'cliente@email.com',
+    role: 'CLIENTE',
+  }));
+
+  repMock.upsertUserProfile.mock.mockImplementation(async (userId, data) => ({
+    id: 'up1',
+    userId,
+    ...data,
+  }));
+
+  const result = await bs.upsertUserProfile('u1', {
+    minBedrooms: 2,
+    minBathrooms: 1,
+    wantsGarage: true,
+    preferredFuel: 'flex',
+    lifestyleTags: ['familia', 'conforto'],
+    incomeRange: 'alto',
+    preferences: { category: 'imoveis' },
+  });
+
+  assert.equal(result.id, 'up1');
+  assert.equal(result.userId, 'u1');
+  assert.equal(result.minBedrooms, 2);
+  assert.equal(result.wantsGarage, true);
+  assert.deepEqual(result.lifestyleTags, ['familia', 'conforto']);
+});
+
+test('upsertUserProfile: lança 404 quando usuário não existe', async () => {
+  repMock.findUserById.mock.mockImplementation(async () => null);
+
+  await assert.rejects(
+    () => bs.upsertUserProfile('usuario-inexistente', { incomeRange: 'alto' }),
+    { status: 404 },
+  );
+});
+
+test('upsertUserProfile: lança 400 quando nenhum campo de perfil é enviado', async () => {
+  repMock.findUserById.mock.mockImplementation(async () => ({
+    id: 'u1',
+    email: 'cliente@email.com',
+    role: 'CLIENTE',
+  }));
+
+  await assert.rejects(
+    () => bs.upsertUserProfile('u1', {}),
+    { status: 400 },
+  );
+});
+
+test('getUserProfile: retorna perfil de usuário quando existe', async () => {
+  repMock.findUserProfileByUserId.mock.mockImplementation(async () => ({
+    id: 'up1',
+    userId: 'u1',
+    lifestyleTags: ['luxo', 'familia'],
+    incomeRange: 'alto',
+  }));
+
+  const result = await bs.getUserProfile('u1');
+
+  assert.equal(result.id, 'up1');
+  assert.equal(result.userId, 'u1');
+  assert.deepEqual(result.lifestyleTags, ['luxo', 'familia']);
+});
+
+test('getUserProfile: lança 404 quando perfil não existe', async () => {
+  repMock.findUserProfileByUserId.mock.mockImplementation(async () => null);
+
+  await assert.rejects(
+    () => bs.getUserProfile('u1'),
     { status: 404 },
   );
 });

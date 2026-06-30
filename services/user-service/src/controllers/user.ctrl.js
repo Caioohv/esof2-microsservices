@@ -108,6 +108,51 @@ async function updateSellerProfile(req, res) {
     res.status(err.status || 500).json({ error: err.message });
   }
 }
+
+async function upsertUserProfile(req, res) {
+  const {
+    minBedrooms,
+    minBathrooms,
+    wantsGarage,
+    preferredDoors,
+    preferredFuel,
+    lifestyleTags,
+    incomeRange,
+    preferences,
+  } = req.body;
+
+  if (lifestyleTags !== undefined && !Array.isArray(lifestyleTags)) {
+    return res.status(400).json({ error: 'lifestyleTags must be an array' });
+  }
+
+  try {
+    const profile = await business.upsertUserProfile(req.params.id, {
+      minBedrooms,
+      minBathrooms,
+      wantsGarage,
+      preferredDoors,
+      preferredFuel,
+      lifestyleTags,
+      incomeRange,
+      preferences,
+    });
+
+    res.status(200).json(profile);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
+}
+
+async function getUserProfile(req, res) {
+  try {
+    const profile = await business.getUserProfile(req.params.id);
+    res.json(profile);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
+}
+
+
 module.exports = {
   health,
   create,
@@ -117,4 +162,6 @@ module.exports = {
   createSellerProfile,
   getSellerProfile,
   updateSellerProfile,
+  upsertUserProfile,
+  getUserProfile,
 };
