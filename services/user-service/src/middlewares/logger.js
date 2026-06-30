@@ -1,14 +1,15 @@
-const logger = (req, res, next) => {
+const logger = require('../lib/logger');
+
+const httpLogger = (req, res, next) => {
   const start = Date.now();
-  const { method, url } = req;
 
   res.on('finish', () => {
-    const duration = Date.now() - start;
-    const level = res.statusCode >= 500 ? 'ERROR' : res.statusCode >= 400 ? 'WARN' : 'INFO';
-    console.log(`[${level}] ${new Date().toISOString()} ${method} ${url} → ${res.statusCode} (${duration}ms)`);
+    const durationMs = Date.now() - start;
+    const level = res.statusCode >= 500 ? 'error' : res.statusCode >= 400 ? 'warn' : 'info';
+    logger[level]('http_request', { method: req.method, path: req.path, status: res.statusCode, durationMs });
   });
 
   next();
 };
 
-module.exports = logger;
+module.exports = httpLogger;
