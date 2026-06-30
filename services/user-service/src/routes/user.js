@@ -2,6 +2,7 @@ const router = require('express').Router();
 const controller = require('../controllers/user.ctrl');
 
 router.get('/health', controller.health);
+router.post('/permissions/verify', controller.verifyPermission);
 router.post('/users', controller.create);
 router.get('/users/me', controller.me);
 router.post('/users/:id/profile', controller.upsertUserProfile);

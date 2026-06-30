@@ -153,6 +153,21 @@ async function getUserProfile(req, res) {
 }
 
 
+async function verifyPermission(req, res) {
+  const { userId, role } = req.body;
+
+  if (role !== undefined && !VALID_ROLES.includes(role)) {
+    return res.status(400).json({ error: 'invalid role' });
+  }
+
+  try {
+    const result = await business.verifyPermission({ userId, role });
+    res.json(result);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
+}
+
 module.exports = {
   health,
   create,
@@ -164,4 +179,5 @@ module.exports = {
   updateSellerProfile,
   upsertUserProfile,
   getUserProfile,
+  verifyPermission,
 };

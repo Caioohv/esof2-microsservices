@@ -390,3 +390,130 @@ test('getUserProfile: lança 404 quando perfil não existe', async () => {
     { status: 404 },
   );
 });
+
+// --- verifyPermission ---
+
+test('verifyPermission: permite CLIENTE quando usuário existe', async () => {
+  repMock.findUserById.mock.mockImplementation(async () => ({
+    id: 'u1',
+    email: 'cliente@email.com',
+    role: 'CLIENTE',
+  }));
+
+  const result = await bs.verifyPermission({
+    userId: 'u1',
+    role: 'CLIENTE',
+  });
+
+  assert.equal(result.allowed, true);
+  assert.equal(result.userId, 'u1');
+  assert.equal(result.role, 'CLIENTE');
+});
+
+test('verifyPermission: permite ADMIN quando usuário é ADMIN', async () => {
+  repMock.findUserById.mock.mockImplementation(async () => ({
+    id: 'admin1',
+    email: 'admin@email.com',
+    role: 'ADMIN',
+  }));
+
+  const result = await bs.verifyPermission({
+    userId: 'admin1',
+    role: 'ADMIN',
+  });
+
+  assert.equal(result.allowed, true);
+  assert.equal(result.role, 'ADMIN');
+});
+
+test('verifyPermission: lança 403 quando usuário não é ADMIN', async () => {
+  repMock.findUserById.mock.mockImplementation(async () => ({
+    id: 'u1',
+    email: 'cliente@email.com',
+    role: 'CLIENTE',
+  }));
+
+  await assert.rejects(
+    () => bs.verifyPermission({ userId: 'u1', role: 'ADMIN' }),
+    { status: 403 },
+  );
+});
+
+test('verifyPermission: permite LOJISTA com perfil aprovado', async () => {
+  repMock.findUserById.mock.mockImplementation(async () => ({
+    id: 'u1',
+    email: 'lojista@email.com',
+    role: 'LOJISTA',
+  }));
+
+  repMock.findSellerProfileByUserId.mock.mockImplementation(async () => ({
+    id: 'sp1',
+    userId: 'u1',
+    businessName: 'Loja Olimpo',
+    status: 'approved',
+  }));
+
+  const result = await bs.verifyPermission({
+    userId: 'u1',
+    role: 'LOJISTA',
+  });
+
+  assert.equal(result.allowed, true);
+  assert.equal(result.role, 'LOJISTA');
+});
+
+test('verifyPermission: lança 403 quando perfil de lojista não está aprovado', async () => {
+  repMock.findUserById.mock.mockImplementation(async () => ({
+    id: 'u1',
+    email: 'lojista@email.com',
+    role: 'LOJISTA',
+  }));
+
+  repMock.findSellerProfileByUserId.mock.mockImplementation(async () => ({
+    id: 'sp1',
+    userId: 'u1',
+    businessName: 'Loja Olimpo',
+    status: 'pending',
+  }));
+
+  await assert.rejects(
+    () => bs.verifyPermission({ userId: 'u1', role: 'LOJISTA' }),
+    { status: 403 },
+  );
+});
+
+test('verifyPermission: lança 404 quando usuário não existe', async () => {
+  repMock.findUserById.mock.mockImplementation(async () => null);
+
+  await assert.rejects(
+    () => bs.verifyPermission({ userId: 'usuario-inexistente', role: 'CLIENTE' }),
+    { status: 404 },
+  );
+});
+
+test('verifyPermission: lança 400 quando userId não é enviado', async () => {
+  await assert.rejects(
+    () => bs.verifyPermission({ role: 'CLIENTE' }),
+    { status: 400 },
+  );
+});
+
+test('verifyPermission: lança 400 quando role não é enviada', async () => {
+  await assert.rejects(
+    () => bs.verifyPermission({ userId: 'u1' }),
+    { status: 400 },
+  );
+});
+
+test('verifyPermission: lança 400 quando role é inválida', async () => {
+  repMock.findUserById.mock.mockImplementation(async () => ({
+    id: 'u1',
+    email: 'cliente@email.com',
+    role: 'CLIENTE',
+  }));
+
+  await assert.rejects(
+    () => bs.verifyPermission({ userId: 'u1', role: 'INVALIDA' }),
+    { status: 400 },
+  );
+});

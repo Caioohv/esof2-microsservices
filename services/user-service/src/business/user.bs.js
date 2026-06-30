@@ -144,6 +144,39 @@ async function getUserProfile(userId) {
   return profile;
 }
 
+
+async function verifyPermission({ userId, role }) {
+  if (!userId) throw new AppError(400, 'userId required');
+  if (!role) throw new AppError(400, 'role required');
+
+  const user = await repo.findUserById(userId);
+  if (!user) throw new AppError(404, 'user not found');
+
+  if (role === 'CLIENTE') {
+    return { allowed: true, userId, role };
+  }
+
+  if (role === 'ADMIN') {
+    if (user.role !== 'ADMIN') {
+      throw new AppError(403, 'permission denied');
+    }
+
+    return { allowed: true, userId, role };
+  }
+
+  if (role === 'LOJISTA') {
+    const sellerProfile = await repo.findSellerProfileByUserId(userId);
+
+    if (!sellerProfile || sellerProfile.status !== 'approved') {
+      throw new AppError(403, 'seller profile not approved');
+    }
+
+    return { allowed: true, userId, role };
+  }
+
+  throw new AppError(400, 'invalid role');
+}
+
 module.exports = {
   health,
   createUser,
@@ -155,4 +188,5 @@ module.exports = {
   updateSellerProfile,
   upsertUserProfile,
   getUserProfile,
+  verifyPermission,
 };
