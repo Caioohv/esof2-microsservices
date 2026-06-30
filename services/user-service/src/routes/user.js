@@ -4,6 +4,9 @@ const controller = require('../controllers/user.ctrl');
 router.get('/health', controller.health);
 router.post('/users', controller.create);
 router.get('/users/me', controller.me);
+router.post('/users/:id/seller-profile', controller.createSellerProfile);
+router.get('/users/:id/seller-profile', controller.getSellerProfile);
+router.patch('/users/:id/seller-profile', controller.updateSellerProfile);
 router.patch('/users/:id', controller.update);
 router.get('/users/:id', controller.getById);
 

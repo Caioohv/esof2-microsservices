@@ -63,10 +63,58 @@ async function update(req, res) {
   }
 }
 
+async function createSellerProfile(req, res) {
+  const { businessName, description } = req.body;
+
+  try {
+    const profile = await business.createSellerProfile(req.params.id, {
+      businessName,
+      description,
+    });
+
+    res.status(201).json(profile);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
+}
+
+async function getSellerProfile(req, res) {
+  try {
+    const profile = await business.getSellerProfile(req.params.id);
+    res.json(profile);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
+}
+
+async function updateSellerProfile(req, res) {
+  const { businessName, description, status } = req.body;
+
+  const VALID_SELLER_STATUS = ['pending', 'approved', 'rejected'];
+
+  if (status !== undefined && !VALID_SELLER_STATUS.includes(status)) {
+    return res.status(400).json({ error: 'invalid seller profile status' });
+  }
+
+  try {
+    const profile = await business.updateSellerProfile(req.params.id, {
+      businessName,
+      description,
+      status,
+    });
+
+    res.json(profile);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
+}
 module.exports = {
   health,
   create,
   getById,
   me,
   update,
+  createSellerProfile,
+  getSellerProfile,
+  updateSellerProfile,
 };

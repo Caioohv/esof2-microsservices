@@ -6,6 +6,9 @@ const repMock = {
   insertUser: mock.fn(),
   findUserById: mock.fn(),
   updateUser: mock.fn(),
+  insertSellerProfile: mock.fn(),
+  findSellerProfileByUserId: mock.fn(),
+  updateSellerProfile: mock.fn(),
 };
 
 // injeta o mock do repositório antes de carregar o módulo de negócio
@@ -176,5 +179,134 @@ test('updateUser: lança 409 quando email já está cadastrado', async () => {
   await assert.rejects(
     () => bs.updateUser('u1', { email: 'duplicado@email.com' }),
     { status: 409 },
+  );
+});
+
+
+// --- SellerProfile ---
+
+test('createSellerProfile: cria perfil de lojista', async () => {
+  repMock.findUserById.mock.mockImplementation(async () => ({
+    id: 'u1',
+    email: 'lojista@email.com',
+    role: 'LOJISTA',
+  }));
+
+  repMock.insertSellerProfile.mock.mockImplementation(async (data) => ({
+    id: 'sp1',
+    ...data,
+    status: 'pending',
+  }));
+
+  const result = await bs.createSellerProfile('u1', {
+    businessName: 'Loja Olimpo',
+    description: 'Loja de itens premium',
+  });
+
+  assert.equal(result.id, 'sp1');
+  assert.equal(result.userId, 'u1');
+  assert.equal(result.businessName, 'Loja Olimpo');
+  assert.equal(result.status, 'pending');
+});
+
+test('createSellerProfile: lança 400 quando businessName não é enviado', async () => {
+  await assert.rejects(
+    () => bs.createSellerProfile('u1', {}),
+    { status: 400 },
+  );
+});
+
+test('createSellerProfile: lança 404 quando usuário não existe', async () => {
+  repMock.findUserById.mock.mockImplementation(async () => null);
+
+  await assert.rejects(
+    () => bs.createSellerProfile('usuario-inexistente', { businessName: 'Loja' }),
+    { status: 404 },
+  );
+});
+
+test('createSellerProfile: lança 409 quando perfil já existe', async () => {
+  repMock.findUserById.mock.mockImplementation(async () => ({
+    id: 'u1',
+    email: 'lojista@email.com',
+    role: 'LOJISTA',
+  }));
+
+  const err = new Error('unique');
+  err.code = 'P2002';
+
+  repMock.insertSellerProfile.mock.mockImplementation(async () => {
+    throw err;
+  });
+
+  await assert.rejects(
+    () => bs.createSellerProfile('u1', { businessName: 'Loja' }),
+    { status: 409 },
+  );
+});
+
+test('getSellerProfile: retorna perfil de lojista quando existe', async () => {
+  repMock.findSellerProfileByUserId.mock.mockImplementation(async () => ({
+    id: 'sp1',
+    userId: 'u1',
+    businessName: 'Loja Olimpo',
+    status: 'pending',
+  }));
+
+  const result = await bs.getSellerProfile('u1');
+
+  assert.equal(result.id, 'sp1');
+  assert.equal(result.userId, 'u1');
+  assert.equal(result.businessName, 'Loja Olimpo');
+});
+
+test('getSellerProfile: lança 404 quando perfil não existe', async () => {
+  repMock.findSellerProfileByUserId.mock.mockImplementation(async () => null);
+
+  await assert.rejects(
+    () => bs.getSellerProfile('u1'),
+    { status: 404 },
+  );
+});
+
+test('updateSellerProfile: atualiza perfil de lojista', async () => {
+  repMock.updateSellerProfile.mock.mockImplementation(async (userId, data) => ({
+    id: 'sp1',
+    userId,
+    businessName: data.businessName,
+    description: data.description,
+    status: data.status,
+  }));
+
+  const result = await bs.updateSellerProfile('u1', {
+    businessName: 'Nova Loja',
+    description: 'Nova descrição',
+    status: 'approved',
+  });
+
+  assert.equal(result.userId, 'u1');
+  assert.equal(result.businessName, 'Nova Loja');
+  assert.equal(result.description, 'Nova descrição');
+  assert.equal(result.status, 'approved');
+});
+
+test('updateSellerProfile: lança 400 quando nenhum campo é enviado', async () => {
+  await assert.rejects(
+    () => bs.updateSellerProfile('u1', {}),
+    { status: 400 },
+  );
+});
+
+test('updateSellerProfile: lança 404 quando perfil não existe', async () => {
+  const err = new Error('not found');
+  err.code = 'P2025';
+
+  repMock.updateSellerProfile.mock.mockImplementation(async () => {
+    throw err;
+  });
+
+  await assert.rejects(
+    () => bs.updateSellerProfile('u1', { businessName: 'Loja' }),
+    { status: 404 },
   );
 });

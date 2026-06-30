@@ -21,8 +21,35 @@ async function updateUser(id, data) {
     data,
   });
 }
+
+async function insertSellerProfile({ userId, businessName, description }) {
+  return prisma.sellerProfile.create({
+    data: {
+      userId,
+      businessName,
+      description,
+    },
+  });
+}
+
+async function findSellerProfileByUserId(userId) {
+  return prisma.sellerProfile.findUnique({
+    where: { userId },
+  });
+}
+
+async function updateSellerProfile(userId, data) {
+  return prisma.sellerProfile.update({
+    where: { userId },
+    data,
+  });
+}
+
 module.exports = {
   insertUser,
   findUserById,
   updateUser,
+  insertSellerProfile,
+  findSellerProfileByUserId,
+  updateSellerProfile,
 };

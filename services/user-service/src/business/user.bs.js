@@ -61,10 +61,54 @@ async function updateUser(id, { email, role }) {
     throw err;
   }
 }
+
+async function createSellerProfile(userId, { businessName, description }) {
+  if (!businessName) throw new AppError(400, 'businessName required');
+
+  const user = await repo.findUserById(userId);
+  if (!user) throw new AppError(404, 'user not found');
+
+  try {
+    return await repo.insertSellerProfile({ userId, businessName, description });
+  } catch (err) {
+    if (err.code === 'P2002') throw new AppError(409, 'seller profile already exists');
+    if (err.code === 'P2003') throw new AppError(404, 'user not found');
+    throw err;
+  }
+}
+
+async function getSellerProfile(userId) {
+  const profile = await repo.findSellerProfileByUserId(userId);
+  if (!profile) throw new AppError(404, 'seller profile not found');
+  return profile;
+}
+
+async function updateSellerProfile(userId, { businessName, description, status }) {
+  const data = {};
+
+  if (businessName !== undefined) data.businessName = businessName;
+  if (description !== undefined) data.description = description;
+  if (status !== undefined) data.status = status;
+
+  if (Object.keys(data).length === 0) {
+    throw new AppError(400, 'no fields to update');
+  }
+
+  try {
+    return await repo.updateSellerProfile(userId, data);
+  } catch (err) {
+    if (err.code === 'P2025') throw new AppError(404, 'seller profile not found');
+    throw err;
+  }
+}
+
 module.exports = {
   health,
   createUser,
   getUser,
   getMe,
   updateUser,
+  createSellerProfile,
+  getSellerProfile,
+  updateSellerProfile,
 };
